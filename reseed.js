@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const {
   User, Department, Term, Course, Instructor, Section, Enrollment, Program
-} = require('../models');
+} = require('./models');
 
 const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/AppDB';
 
