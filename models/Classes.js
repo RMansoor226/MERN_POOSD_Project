@@ -3,31 +3,31 @@ const mongoose = require('mongoose');
 const classSchema = new mongoose.Schema(
   {
     ProfessorName: {
-      type: String,
-      trim: true
+        type: String,
+        trim: true
     },
     ClassCode: {
-      type: String,
-      default: '',
-      trim: true
+        type: String,
+        default: '',
+        trim: true
     },
     Prereq: {
-      type: [{type: String}],
-      default: ''
+        type: [{ type: String }],
+        default: ''
     },
     Size: {
-      type: Number,
-      default: 0,
-      required: [true, 'class size required']
+        type: Number,
+        default: 0,
+        required: [true, 'class size required']
     },
     Count: {
-      type: Number,
-      default: 0
+        type: Number,
+        default: 0
     },
     userId: {
-      type: String,
-      required: [true, 'userId is required'],
-      trim: true
+        type: String,
+        required: [true, 'userId is required'],
+        trim: true
     }
   },
   {
