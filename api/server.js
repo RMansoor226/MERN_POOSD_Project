@@ -19,7 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // Link Routers
-const usersRouter = require('./routes/users');
+const usersRouter = require('./routes/userRoutes');
 app.use('/api/users', usersRouter);
 
 // GET /api/ping - Health check

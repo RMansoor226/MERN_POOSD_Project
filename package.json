@@ -8,7 +8,7 @@
   "main": "api/server.js",
   "scripts": {
     "start": "node api/server.js",
-    "dev": "nodemon api/server.js",
+    "dev": "nodemon -L api/server.js",
     "reseed": "node reseed.js"
   },
   "dependencies": {

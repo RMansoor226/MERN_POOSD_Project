@@ -6,6 +6,10 @@ info:
 http:
   method: PATCH
   url: "{{baseURL}}/api/users/{{userId}}"
+  params:
+    - name: id
+      value: ""
+      type: path
   auth: inherit
 
 settings:
