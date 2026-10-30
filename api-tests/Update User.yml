@@ -1,0 +1,16 @@
+info:
+  name: Update User
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/users/{{userId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
