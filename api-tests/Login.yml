@@ -1,7 +1,7 @@
 info:
   name: Login
   type: http
-  seq: 7
+  seq: 4
 
 http:
   method: POST
@@ -10,21 +10,27 @@ http:
     type: json
     data: |-
       {
-        "login": "{{username}}",
-        "password": "{{userPassword}}"
+        "login": "metoo",
+        "password": "ucf123!"
       }
   auth: inherit
 
 runtime:
-  variables:
-    - name: username
-      value: babaYaga
-    - name: userPassword
-      value: consequences
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200 with the user record", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().id).to.not.equal(-1);
+          expect(res.getBody().firstName).to.equal("Me");
+          expect(res.getBody().error).to.equal("");
+        });
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-  forwardAuthorizationHeader: false
+  forwardAuthorizationHeader: true
+
+docs: Successful login with the seeded demo user (run `npm run reseed` first).

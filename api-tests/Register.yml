@@ -1,0 +1,37 @@
+info:
+  name: Register
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/register"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "Test",
+        "lastName": "User",
+        "login": "testuser{{$timestamp}}",
+        "password": "Password123!"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 201 with a confirmation message", function () {
+          expect(res.getStatus()).to.equal(201);
+          expect(res.getBody().message).to.equal("User registered successfully");
+          expect(res.getBody().error).to.equal("");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
+
+docs: Registers a new user. The login gets a timestamp suffix so it is unique on every run.

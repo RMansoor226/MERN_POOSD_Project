@@ -38,22 +38,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// POST /api/users
-router.post('/register', async (req, res) => {
-    try {
-        const newUser = new User(req.body);
-        const savedUser = await newUser.save();
-
-        res.status(201).json(savedUser);
-    }   catch (error) {
-        res.status(400).json(
-            {
-                message: "Error creating user"
-            }
-        )
-    }
-});
-
 // PATCH /api/users/:id
 router.patch('/:id', async (req, res) => {
     try {
