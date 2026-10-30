@@ -8,6 +8,11 @@ http:
   url: "{{baseURL}}/api/users/{{userId}}"
   auth: inherit
 
+runtime:
+  variables:
+    - name: userId
+      value: 6ae432612696d2db76d2291b
+
 settings:
   encodeUrl: true
   timeout: 0

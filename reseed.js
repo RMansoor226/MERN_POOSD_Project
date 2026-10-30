@@ -92,7 +92,7 @@ async function run() {
   });
 
   // --- users ------------------------------------------------------------
-  const pw = bcrypt.hashSync('ucf123!', 10);
+  const pw = 'ucf123!';
   const metoo = await User.create({
     firstName: 'Me', lastName: 'Too', login: 'metoo', password: pw, role: 'student'
   });

@@ -22,6 +22,9 @@ app.use(express.json());
 const usersRouter = require('./routes/userRoutes');
 app.use('/api/users', usersRouter);
 
+const authRouter = require('./routes/authRoutes');
+app.use('/api/auth', authRouter);
+
 // GET /api/ping - Health check
 app.get('/api/ping', (req, res) => {
   res.status(200).json({ message: 'Hello World from MERN-Project' });
