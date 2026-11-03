@@ -18,9 +18,16 @@ app.use(cors());
 // Turn JSON request bodies into a JavaScript object at req.body
 app.use(express.json());
 
+// Link Routers
+const usersRouter = require('./routes/userRoutes');
+app.use('/api/users', usersRouter);
+
+const authRouter = require('./routes/authRoutes');
+app.use('/api/auth', authRouter);
+
 // GET /api/ping - Health check
 app.get('/api/ping', (req, res) => {
-  res.status(200).json({ message: 'Hello World 27' });
+  res.status(200).json({ message: 'Hello World from MERN-Project' });
 });
 
 // Start listening only when run directly (node server.js), not when a test

@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const {
   User, Department, Term, Course, Instructor, Section, Enrollment, Program
-} = require('../models');
+} = require('./models');
 
 const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/AppDB';
 
@@ -92,7 +92,7 @@ async function run() {
   });
 
   // --- users ------------------------------------------------------------
-  const pw = bcrypt.hashSync('ucf123!', 10);
+  const pw = 'ucf123!';
   const metoo = await User.create({
     firstName: 'Me', lastName: 'Too', login: 'metoo', password: pw, role: 'student'
   });

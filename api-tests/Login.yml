@@ -1,0 +1,36 @@
+info:
+  name: Login
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "login": "metoo",
+        "password": "ucf123!"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200 with the user record", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().id).to.not.equal(-1);
+          expect(res.getBody().firstName).to.equal("Me");
+          expect(res.getBody().error).to.equal("");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
+
+docs: Successful login with the seeded demo user (run `npm run reseed` first).

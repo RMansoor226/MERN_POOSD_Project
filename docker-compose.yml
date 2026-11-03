@@ -32,8 +32,6 @@ services:
       - MONGO_INITDB_DATABASE=AppDB
     volumes:
       - mongo_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-      - ./mongo-seed.js:/docker-entrypoint-initdb.d/mongo-seed.js:ro
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
