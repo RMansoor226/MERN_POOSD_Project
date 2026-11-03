@@ -57,7 +57,7 @@ router.post('/register', async (req, res) => {
     try {
         const { firstName, lastName, login, password, email } = req.body || {};
 
-        if (typeof login !== "string" || typeof password === "string") {
+        if (typeof login !== "string" || typeof password !== "string") {
             return res.status(400).json({
                 id: -1,
                 message: "",

@@ -33,4 +33,4 @@ settings:
   maxRedirects: 5
   forwardAuthorizationHeader: true
 
-docs: Successful login with the seeded demo user (run `npm run reseed` first).
+docs: "Successful login with the seeded demo user (run `npm run reseed` first)."

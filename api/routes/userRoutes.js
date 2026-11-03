@@ -25,7 +25,6 @@ router.get('/:id', async (req, res) => {
 
         if (!user) {
             return res.status(404).send("User not found with that ID");
-            return;
         }
 
         return res.status(200).json(user);
