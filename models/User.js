@@ -27,6 +27,7 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'Login username is required'],
       unique: true,
+      lowercase: true,
       trim: true
     },
     // bcrypt hash. Excluded from queries by default: use .select('+password') at login

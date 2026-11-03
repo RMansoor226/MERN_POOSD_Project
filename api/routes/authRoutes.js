@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             id: foundUser._id,
             firstName: foundUser.firstName,
             lastName: foundUser.lastName,
@@ -39,14 +39,14 @@ router.post('/login', async (req, res) => {
         });
     }   catch (error) {
         console.log(error);
-        res.status(500).json(
+        return res.status(500).json(
             {
                 id: -1,
                 firstName: "",
                 lastName: "",
                 error: "Error logging in"
             }
-        )
+        );
     }
 });
 
@@ -55,7 +55,15 @@ router.post('/login', async (req, res) => {
 // outgoing: id, message, error
 router.post('/register', async (req, res) => {
     try {
-        const { firstName, lastName, login, password, email } = req.body;
+        const { firstName, lastName, login, password, email } = req.body || {};
+
+        if (typeof login !== "string" || typeof password === "string") {
+            return res.status(400).json({
+                id: -1,
+                message: "",
+                error: "Username and password must both be strings"
+            });
+        }
 
         if (!login || !password) {
             return res.status(400).json({
@@ -65,40 +73,76 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        const existingUser = await User.findOne({ login: String(login) });
-
-        if (existingUser) {
-            return res.status(409).json({
+        if (password.length < 8) {
+            return res.status(400).json({
                 id: -1,
                 message: "",
-                error: "Login already taken"
+                error: "Password must be at least 8 characters"
             });
         }
 
         // the User model's pre-save hook hashes the password
         const newUser = await User.create({
-            firstName: firstName,
-            lastName: lastName,
+            firstName: cleanValue(firstName),
+            lastName: cleanValue(lastName),
             login: String(login),
             password: String(password),
-            email: email
+            email: cleanValue(email)
         });
 
-        res.status(201).json({
+        return res.status(201).json({
             id: newUser._id,
             message: "User registered successfully",
             error: ""
         });
     }   catch (error) {
         console.log(error);
-        res.status(400).json(
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern || {})[0];
+            if (field === "login") {
+                return res.status(409).json(
+                    {
+                        id: -1,
+                        message: "",
+                        error: `User with this login already exists`
+                    }
+                );
+            }
+            return res.status(400).json(
+                {
+                    id: -1,
+                    message: "",
+                    error: "Unable to register with the provided details"
+                }
+            );
+        }
+
+        if (error.name === "ValidationError") {
+            const first = Object.values(error.errors)[0];
+            return res.status(400).json(
+                {
+                    id: -1,
+                    message: "",
+                    error: first.message
+                }
+            );
+        }
+
+        return res.status(500).json(
             {
                 id: -1,
                 message: "",
                 error: "Error registering user"
             }
-        )
+        );
     }
 });
+
+function cleanValue(value) {
+    if (value === undefined || value === null) return undefined;
+
+    const trimmed = String(value).trim();
+    return trimmed === "" ? undefined : trimmed;
+}
 
 module.exports = router;

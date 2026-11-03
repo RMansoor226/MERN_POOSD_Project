@@ -8,9 +8,9 @@ router.get('/', async (req, res) => {
     try {
         const users = await User.find();
 
-        res.status(200).json(users);
+        return res.status(200).json(users);
     }   catch (error) {
-        res.status(500).json(
+        return res.status(500).json(
             {
                 message: "Error fetching users"
             }
@@ -24,13 +24,13 @@ router.get('/:id', async (req, res) => {
         const user = await User.findById(req.params.id);
 
         if (!user) {
-            res.status(404).send("User not found with that ID");
+            return res.status(404).send("User not found with that ID");
             return;
         }
 
-        res.status(200).json(user);
+        return res.status(200).json(user);
     }   catch (error) {
-        res.status(400).json(
+        return res.status(400).json(
             {
                 message: "Error fetching user"
             }
@@ -38,23 +38,32 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+const ALLOWED_FIELDS = ['firstName', 'lastName', 'email', 'declarations'];
+
 // PATCH /api/users/:id
 router.patch('/:id', async (req, res) => {
     try {
-        const modifiedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const foundUser = await User.findById(req.params.id);
 
-        if (!modifiedUser) {
-            res.status(404).send("No User found with that ID");
-            return;
+        if (!foundUser) {
+            return res.status(404).json(
+                {
+                    message: "No User found with that ID"
+                }
+            )
         }
 
-        res.status(200).json(modifiedUser);
+        for (const field of ALLOWED_FIELDS) {
+            if (req.body[field] !== undefined) {
+                foundUser[field] = req.body[field];
+            }
+        }
+
+        const updatedUser = await foundUser.save();
+
+        return res.status(200).json(updatedUser);
     }   catch (error) {
-        res.status(400).json(
+        return res.status(400).json(
             {
                 message: "Error modifying user"
             }
@@ -68,13 +77,12 @@ router.delete('/:id', async (req, res) => {
         const deletedUser = await User.findByIdAndDelete(req.params.id);
 
         if (!deletedUser) {
-            res.status(404).send("No User found with that ID");
-            return;
+            return res.status(404).send("No User found with that ID");
         }
 
-        res.status(200).json(deletedUser);
+        return res.status(200).json(deletedUser);
     }   catch (error) {
-        res.status(400).json(
+        return res.status(400).json(
             {
                 message: "Error deleting user"
             }
