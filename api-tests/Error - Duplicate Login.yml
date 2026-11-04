@@ -1,0 +1,40 @@
+info:
+  name: Error - Duplicate Login
+  type: http
+  seq: 14
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/register"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "Dupe",
+        "lastName": "User",
+        "login": "metoo",
+        "password": "Password123!"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409 with the login-specific message", function () {
+          expect(res.getStatus()).to.equal(409);
+          expect(res.getBody().error).to.equal("User with this login already exists");
+        });
+        test("does not expose the Mongo duplicate-key error", function () {
+          const text = JSON.stringify(res.getBody());
+          expect(text).to.not.include("E11000");
+          expect(text).to.not.include("keyPattern");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: Run `npm run reseed` first so the metoo account exists.

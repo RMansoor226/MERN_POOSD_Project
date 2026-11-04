@@ -1,0 +1,31 @@
+info:
+  name: Error - AppError From Route
+  type: http
+  seq: 11
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/users/000000000000000000000000"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 404 with a string error", function () {
+          expect(res.getStatus()).to.equal(404);
+          expect(res.getBody().error).to.be.a("string");
+          expect(res.getBody().error).to.not.equal("");
+        });
+        test("uses the standard error shape", function () {
+          expect(res.getHeader("content-type")).to.include("application/json");
+          expect(res.getBody()).to.not.have.property("stack");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: A controller throws AppError(404) for a valid ObjectId that matches no user.

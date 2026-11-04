@@ -17,6 +17,9 @@ http:
 
 runtime:
   scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("seedUserId", res.getBody().id);
     - type: tests
       code: |-
         test("responds 200 with the user record", function () {

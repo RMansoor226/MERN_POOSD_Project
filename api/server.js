@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+
+const { notFound, errorHandler } = require('./middleware/errorHandler');
+
 require('dotenv').config();
 
 // --- Database -------------------------------------------------------------
@@ -29,6 +32,10 @@ app.use('/api/auth', authRouter);
 app.get('/api/ping', (req, res) => {
   res.status(200).json({ message: 'Hello World from MERN-Project' });
 });
+
+app.use(notFound);
+app.use(errorHandler);
+app.use(express.json({ limit: '100kb' }));
 
 // Start listening only when run directly (node server.js), not when a test
 // file loads the app with require()

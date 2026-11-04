@@ -1,0 +1,30 @@
+info:
+  name: Error - Malformed JSON
+  type: http
+  seq: 15
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      { "login": "metoo", "password":
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Malformed JSON body", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Malformed JSON body");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: express.json throws a parse error before any route runs; errorHandler must translate it.

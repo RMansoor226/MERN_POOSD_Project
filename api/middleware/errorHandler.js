@@ -1,3 +1,4 @@
+const AppError = require("../utils/AppError");
 
 function notFound(req, res, next) {
     next(new AppError(404, `Route not found: ${req.method} ${req.originalUrl}`));
@@ -45,4 +46,9 @@ function errorHandler(err, req, res, next) {
         error: message,
         ...(details && { details })
     });
+}
+
+module.exports = {
+    errorHandler,
+    notFound
 }
