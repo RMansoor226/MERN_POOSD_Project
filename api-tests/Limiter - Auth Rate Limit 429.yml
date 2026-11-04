@@ -1,0 +1,33 @@
+info:
+  name: Limiter - Auth Rate Limit 429
+  type: http
+  seq: 32
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      { "login": "metoo", "password": "wrong-password" }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const axios = require("axios");
+        const url = bru.getEnvVar("baseURL") + "/api/auth/login";
+        for (let i = 0; i < 60; i++) {          // burn through the limit; stop at the first 429
+          try {
+            await axios.post(url, { login: "metoo", password: "wrong-password" });
+          } catch (e) {
+            if (e.response && e.response.status === 429) break;   // limit reached
+          }
+        }
+    - type: tests
+      code: |-
+        test("responds 429 through the standard error shape", function () {
+          expect(res.getStatus()).to.equal(429);
+          expect(res.getBody().error).to.equal("Too many requests, try again later");
+        });

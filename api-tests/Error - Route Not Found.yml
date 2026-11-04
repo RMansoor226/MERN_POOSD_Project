@@ -1,0 +1,30 @@
+info:
+  name: Error - Route Not Found
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/this-route-does-not-exist"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 404 with the route in the message", function () {
+          expect(res.getStatus()).to.equal(404);
+          expect(res.getBody().error).to.equal("Route not found: GET /api/this-route-does-not-exist");
+        });
+        test("has no details and leaks no stack", function () {
+          expect(res.getBody()).to.not.have.property("details");
+          expect(res.getBody()).to.not.have.property("stack");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: notFound middleware. No route matches, so notFound passes an AppError(404) to errorHandler.

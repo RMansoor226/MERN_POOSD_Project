@@ -1,0 +1,33 @@
+info:
+  name: Error - Payload Too Large
+  type: http
+  seq: 16
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      {}
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setBody({ login: "x".repeat(200000), password: "x" });
+    - type: tests
+      code: |-
+        test("responds 413 Request body too large", function () {
+          expect(res.getStatus()).to.equal(413);
+          expect(res.getBody().error).to.equal("Request body too large");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: Requires express.json({ limit }) of 100kb or less in server.js.

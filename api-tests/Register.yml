@@ -13,7 +13,8 @@ http:
         "firstName": "Test",
         "lastName": "User",
         "login": "testuser{{$timestamp}}",
-        "password": "Password123!"
+        "password": "Password123!",
+        "email:": "test{{$timestamp}}@gmail.com"
       }
   auth: inherit
 

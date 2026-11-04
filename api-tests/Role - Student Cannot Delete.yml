@@ -1,0 +1,21 @@
+info:
+  name: Role - Student Cannot Delete
+  type: http
+  seq: 23
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/users/{{seedUserId}}"
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 403 even for the student's own id", function () {
+          expect(res.getStatus()).to.equal(403);
+          expect(res.getBody().error).to.equal("Insufficient permissions");
+        });

@@ -17,6 +17,9 @@ http:
 
 runtime:
   scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("seedUserId", res.getBody().id);
     - type: tests
       code: |-
         test("responds 200 with the user record", function () {
@@ -25,6 +28,10 @@ runtime:
           expect(res.getBody().firstName).to.equal("Me");
           expect(res.getBody().error).to.equal("");
         });
+    - type: after-response
+      code: |-
+        bru.setVar("seedUserId", res.getBody().id);
+        bru.setVar("studentToken", res.getBody().token);
 
 settings:
   encodeUrl: true
@@ -33,4 +40,4 @@ settings:
   maxRedirects: 5
   forwardAuthorizationHeader: true
 
-docs: Successful login with the seeded demo user (run `npm run reseed` first).
+docs: "Successful login with the seeded demo user (run `npm run reseed` first)."

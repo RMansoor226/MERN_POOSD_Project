@@ -1,0 +1,26 @@
+info:
+  name: Error - Not Found Wrong Method
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/ping"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 404 naming the method and path", function () {
+          expect(res.getStatus()).to.equal(404);
+          expect(res.getBody().error).to.equal("Route not found: POST /api/ping");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: /api/ping only defines GET, so POST falls through to notFound.

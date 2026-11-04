@@ -1,0 +1,22 @@
+info:
+  name: Limiter - Security And Rate Limit Headers
+  type: http
+  seq: 31
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/ping"
+  auth: none
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("apiLimiter adds standard rate limit headers", function () {
+          const keys = Object.keys(res.getHeaders()).map((k) => k.toLowerCase());
+          expect(keys.some((k) => k.startsWith("ratelimit"))).to.equal(true);
+        });
+        test("helmet headers are present and x-powered-by is gone", function () {
+          expect(res.getHeader("x-content-type-options")).to.equal("nosniff");
+          expect(res.getHeader("x-powered-by")).to.equal(undefined);
+        });

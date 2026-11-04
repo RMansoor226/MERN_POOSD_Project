@@ -1,0 +1,39 @@
+info:
+  name: Error - Mongoose Validation
+  type: http
+  seq: 13
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/users/{{seedUserId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "declarations": [ { "catalogYear": 2025 } ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details maps the failing field to a message", function () {
+          const details = res.getBody().details;
+          expect(details).to.be.an("object");
+          const keys = Object.keys(details);
+          expect(keys.some((k) => k.startsWith("declarations"))).to.equal(true);
+          Object.values(details).forEach((m) => expect(m).to.be.a("string"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: Requires the Login request to have run first (it sets seedUserId).

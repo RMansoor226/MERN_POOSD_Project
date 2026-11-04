@@ -11,6 +11,10 @@ services:
       - PORT=5000
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongodb:27017/AppDB
+      - JWT_SECRET=ed68bafaf18ac158887a0807522046f090801ac2b44df665f1253df0a5239aa06d78f689c00ae5bd2ddf8fd70b6e743e
+      - JWT_EXPIRES_IN=1h
+      - CLIENT_ORIGIN=http://localhost:3000
+      - AUTH_RATE_LIMIT=20
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
