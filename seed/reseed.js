@@ -98,6 +98,7 @@ async function run() {
   const s1 = await User.create({ firstName: 'Sam', lastName: 'One', login: 'student1', password: pw });
   const s2 = await User.create({ firstName: 'Sky', lastName: 'Two', login: 'student2', password: pw });
   await User.create({ firstName: 'Ada', lastName: 'Advisor', login: 'advisor1', password: pw, role: 'advisor' });
+  await User.create({ firstName: 'Root', lastName: 'Admin', login: 'admin1', password: pw, role: 'admin' });
 
   // --- sections ---------------------------------------------------------
   let crn = 10000;

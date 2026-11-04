@@ -1,7 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const mongoose = require('mongoose');
-
+const config = require('./config');
+const { apiLimiter } = require('./middleware/rateLimiters');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 require('dotenv').config();
@@ -16,10 +19,14 @@ mongoose
 // --- App ------------------------------------------------------------------
 const app = express();
 
-// Allow the React frontend, which runs at a different address, to call this API
-app.use(cors());
-// Turn JSON request bodies into a JavaScript object at req.body
-app.use(express.json());
+if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY));
+
+// Link middleware
+app.use(helmet());
+app.use(cors({ origin: config.CLIENT_ORIGIN }));
+app.use(morgan('dev'));
+app.use(express.json({ limit: '100kb' }));
+app.use('/api', apiLimiter);
 
 // Link Routers
 const usersRouter = require('./routes/userRoutes');
@@ -35,7 +42,6 @@ app.get('/api/ping', (req, res) => {
 
 app.use(notFound);
 app.use(errorHandler);
-app.use(express.json({ limit: '100kb' }));
 
 // Start listening only when run directly (node server.js), not when a test
 // file loads the app with require()

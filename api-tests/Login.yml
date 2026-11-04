@@ -28,6 +28,10 @@ runtime:
           expect(res.getBody().firstName).to.equal("Me");
           expect(res.getBody().error).to.equal("");
         });
+    - type: after-response
+      code: |-
+        bru.setVar("seedUserId", res.getBody().id);
+        bru.setVar("studentToken", res.getBody().token);
 
 settings:
   encodeUrl: true

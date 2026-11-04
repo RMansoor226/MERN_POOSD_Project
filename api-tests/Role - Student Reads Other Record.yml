@@ -1,0 +1,21 @@
+info:
+  name: Role - Student Reads Other Record
+  type: http
+  seq: 22
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/users/{{otherStudentId}}"
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 403 You do not have access", function () {
+          expect(res.getStatus()).to.equal(403);
+          expect(res.getBody().error).to.equal("You do not have access to this resource");
+        });

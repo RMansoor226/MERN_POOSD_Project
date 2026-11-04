@@ -1,13 +1,18 @@
 const express = require('express');
 const { User } = require('../../models');
-const AppError = require("../utils/AppError");
+const AppError = require('../utils/AppError');
+const cleanValue = require('../utils/cleanValue');
+const { signToken } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimiters');
+const validate = require('../middleware/validate');
+const { registerSchema, loginSchema } = require('../schemas/authSchemas');
 
 const router = express.Router();
 
 // POST /api/auth/login
 // incoming: login, password
 // outgoing: id, firstName, lastName, error
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
     const { login, password } = req.body ?? {};
 
     if (typeof login !== "string" || typeof password !== "string") {
@@ -29,14 +34,16 @@ router.post('/login', async (req, res) => {
         id: foundUser._id,
         firstName: foundUser.firstName,
         lastName: foundUser.lastName,
-        error: ""
+        role: foundUser.role,
+        token: signToken(foundUser),
+        error: ''
     });
 });
 
 // POST /api/auth/register
 // incoming: firstName, lastName, login, password, email
 // outgoing: id, message, error
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, validate(registerSchema), async (req, res) => {
     const { firstName, lastName, login, password, email } = req.body || {};
 
     if (typeof login !== "string" || typeof password !== "string") {
@@ -66,12 +73,5 @@ router.post('/register', async (req, res) => {
         error: ""
     });
 });
-
-function cleanValue(value) {
-    if (value === undefined || value === null) return undefined;
-
-    const trimmed = String(value).trim();
-    return trimmed === "" ? undefined : trimmed;
-}
 
 module.exports = router;

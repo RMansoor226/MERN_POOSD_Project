@@ -1,0 +1,26 @@
+info:
+  name: Validate - Update Strips Role
+  type: http
+  seq: 28
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/users/{{seedUserId}}"
+  body:
+    type: json
+    data: |-
+      { "firstName": "Me", "role": "admin" }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("update succeeds but role is untouched", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().firstName).to.equal("Me");
+          expect(res.getBody().role).to.equal("student");
+        });

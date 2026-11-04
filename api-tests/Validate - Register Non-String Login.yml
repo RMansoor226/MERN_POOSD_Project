@@ -1,0 +1,22 @@
+info:
+  name: Validate - Register Non-String Login
+  type: http
+  seq: 26
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/register"
+  body:
+    type: json
+    data: |-
+      { "login": 12345, "password": "Password123!" }
+  auth: none
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("rejects a numeric login", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().details).to.have.property("login");
+        });
