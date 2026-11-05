@@ -1,0 +1,333 @@
+/* UCF palette: black and gold. Change the colors here to retheme the whole app. */
+:root {
+  --ucf-black: #000000;
+  --ucf-gold: #ffc904;
+  --gold-hover: #e6b400;
+  --gold-tint: #fff7d6;      /* light gold wash for badges and highlights */
+  --ink: #1a1a1a;            /* body text */
+  --muted: #666666;          /* secondary text */
+  --border: #d6d6d6;
+  --divider: #ececec;
+  --page-bg: #f4f4f2;
+  --card-bg: #ffffff;
+  --danger: #c0281c;
+  --danger-bg: #fdecea;
+  --success: #1e6b34;
+  --success-bg: #e6f4ea;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--page-bg);
+  color: var(--ink);
+}
+
+/* --- Login and register ---------------------------------------------------- */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--ucf-black);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  border-top: 6px solid var(--ucf-gold);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-card h1 {
+  margin: 0 0 1.25rem;
+  font-size: 1.6rem;
+}
+
+label {
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+input:focus,
+select:focus {
+  outline: 3px solid var(--ucf-gold);
+  outline-offset: 0;
+  border-color: var(--ucf-black);
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+/* Primary button: gold with black text (white on gold would be hard to read) */
+button {
+  margin-top: 1.5rem;
+  padding: 0.7rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ucf-black);
+  background: var(--ucf-gold);
+  border: 1px solid var(--ucf-gold);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--gold-hover);
+  border-color: var(--gold-hover);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--ucf-black);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.field-error {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+
+.alert {
+  margin: 0 0 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.alert-error {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.alert-success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.auth-switch {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.auth-switch a {
+  color: var(--ucf-black);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--ucf-gold);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 3px;
+}
+
+/* --- Logged-in app shell and dashboard ------------------------------------ */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: var(--ucf-black);
+  border-bottom: 4px solid var(--ucf-gold);
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ucf-gold);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.role-badge {
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--ucf-black);
+  background: var(--ucf-gold);
+  border-radius: 999px;
+}
+
+/* Secondary button: outlined. Default is for light backgrounds. */
+.btn-secondary {
+  margin-top: 0;
+  padding: 0.4rem 0.9rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--gold-tint);
+  border-color: var(--ink);
+}
+
+/* ...and inverted when it sits on the black top bar */
+.topbar .btn-secondary {
+  color: #fff;
+  background: transparent;
+  border-color: #fff;
+}
+
+.topbar .btn-secondary:hover:not(:disabled) {
+  color: var(--ucf-black);
+  background: var(--ucf-gold);
+  border-color: var(--ucf-gold);
+}
+
+.topbar .btn-secondary:focus-visible {
+  outline-color: var(--ucf-gold);
+}
+
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.content h1 {
+  margin: 0 0 1.25rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.25rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border-top: 4px solid var(--ucf-gold);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.card p {
+  margin: 0 0 0.5rem;
+}
+
+/* Placeholder cards for features waiting on the backend: quiet, no gold accent */
+.card-muted {
+  background: #fafaf8;
+  border: 1px dashed var(--border);
+  box-shadow: none;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.details {
+  margin: 0;
+}
+
+.details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.details dt {
+  color: var(--muted);
+}
+
+.details dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  text-transform: none;
+}
+
+.program-list {
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.program-list li {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.card > button {
+  margin-top: 0.75rem;
+}
+
+.declare-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.declare-form label {
+  margin-top: 0.5rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.form-actions button {
+  margin-top: 0;
+}
+
+.alert-error .btn-secondary {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
