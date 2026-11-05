@@ -23,6 +23,23 @@ services:
       mongodb:
         condition: service_healthy
 
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: mern_frontend_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - API_PROXY_TARGET=http://api:5000
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev
+    depends_on:
+      - api
+
   mongodb:
     image: docker.io/mongo:7.0
     container_name: mern_mongodb_app
