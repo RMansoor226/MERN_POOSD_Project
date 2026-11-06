@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext.jsx';
+import AuthBrand from '../components/AuthBrand.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -35,6 +37,7 @@ export default function Login() {
 
   return (
     <main className="auth-page">
+      <AuthBrand />
       <form className="auth-card" onSubmit={handleSubmit} noValidate>
         <h1>Log In</h1>
 
@@ -60,9 +63,8 @@ export default function Login() {
         />
 
         <label htmlFor="password">Password</label>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

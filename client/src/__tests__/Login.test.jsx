@@ -24,6 +24,27 @@ describe('Login page', () => {
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
   });
 
+  it('shows the app name above the form', () => {
+    renderApp('/');
+
+    expect(screen.getByText('Course Registration')).toBeInTheDocument();
+  });
+
+  it('can show and hide the password', async () => {
+    renderApp('/');
+    const password = screen.getByLabelText('Password');
+    await userEvent.type(password, 'secret123');
+    expect(password).toHaveAttribute('type', 'password');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show' }));
+    expect(password).toHaveAttribute('type', 'text');
+    expect(password).toHaveValue('secret123');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hide' }));
+    expect(password).toHaveAttribute('type', 'password');
+    expect(api.login).not.toHaveBeenCalled(); // the toggle does not submit the form
+  });
+
   it('links to the register page', async () => {
     renderApp('/');
 

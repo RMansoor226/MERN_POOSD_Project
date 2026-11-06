@@ -29,8 +29,18 @@ export function AuthProvider({ children }) {
     setSession(null);
   }, []);
 
+  // merge fresh profile fields (e.g. a new first name) into the saved session
+  const updateSession = useCallback((changes) => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...changes };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ session, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, signIn, signOut, updateSession }}>
       {children}
     </AuthContext.Provider>
   );
