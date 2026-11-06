@@ -1,30 +1,8 @@
 import { useAuth } from '../AuthContext.jsx';
 import { useCurrentUser } from '../hooks/useCurrentUser.js';
 import ComingSoonCard from '../components/ComingSoonCard.jsx';
+import ProfileCard from '../components/ProfileCard.jsx';
 import ProgramsCard from '../components/ProgramsCard.jsx';
-
-function ProfileCard({ user }) {
-  const rows = [
-    ['Name', [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Not provided'],
-    ['Login', user.login],
-    ['Email', user.email || 'Not provided'],
-    ['Role', user.role.charAt(0).toUpperCase() + user.role.slice(1)],
-  ];
-
-  return (
-    <section className="card" aria-labelledby="profile-heading">
-      <h2 id="profile-heading">My Profile</h2>
-      <dl className="details">
-        {rows.map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-  );
-}
 
 export default function StudentHome() {
   const { session } = useAuth();
@@ -49,7 +27,7 @@ export default function StudentHome() {
       <div className="grid">
         {status === 'ready' && (
           <>
-            <ProfileCard user={user} />
+            <ProfileCard user={user} onUserUpdated={setUser} />
             <ProgramsCard user={user} onUserUpdated={setUser} />
           </>
         )}

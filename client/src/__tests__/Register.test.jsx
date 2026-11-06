@@ -21,6 +21,7 @@ async function fillValidForm({ email } = {}) {
   await userEvent.type(screen.getByLabelText('Login'), 'ada');
   if (email) await userEvent.type(screen.getByLabelText('Email (optional)'), email);
   await userEvent.type(screen.getByLabelText('Password'), 'password123');
+  await userEvent.type(screen.getByLabelText('Confirm password'), 'password123');
 }
 
 const submit = () => userEvent.click(screen.getByRole('button', { name: 'Register' }));
@@ -34,6 +35,27 @@ describe('Register page', () => {
     expect(screen.getByLabelText('Login')).toBeInTheDocument();
     expect(screen.getByLabelText('Email (optional)')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Confirm password')).toBeInTheDocument();
+  });
+
+  it('shows the app name above the form', () => {
+    renderApp('/register');
+
+    expect(screen.getByText('Course Registration')).toBeInTheDocument();
+  });
+
+  it('rejects a confirm password that does not match', async () => {
+    renderApp('/register');
+    await userEvent.type(screen.getByLabelText('First name'), 'Ada');
+    await userEvent.type(screen.getByLabelText('Last name'), 'Lovelace');
+    await userEvent.type(screen.getByLabelText('Login'), 'ada');
+    await userEvent.type(screen.getByLabelText('Password'), 'password123');
+    await userEvent.type(screen.getByLabelText('Confirm password'), 'password124');
+
+    await submit();
+
+    expect(screen.getByText('Passwords do not match.')).toBeInTheDocument();
+    expect(api.register).not.toHaveBeenCalled();
   });
 
   // Role selection is on hold (see SHOW_ROLE_SELECT in Register.jsx).

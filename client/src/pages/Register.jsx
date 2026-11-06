@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as api from '../api.js';
+import AuthBrand from '../components/AuthBrand.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 
 // Role selection is on hold: the backend ignores `role` and allowing self-selected
 // advisor/instructor roles needs a security decision first.
@@ -32,6 +34,8 @@ function validate(f) {
   if (f.password.length < 8) errors.password = 'Password must be at least 8 characters.';
   else if (f.password.length > 72) errors.password = 'Password must be 72 characters or fewer.';
 
+  if (!errors.password && f.confirmPassword !== f.password) errors.confirmPassword = 'Passwords do not match.';
+
   return errors;
 }
 
@@ -44,6 +48,7 @@ export default function Register() {
     email: '',
     role: 'student',
     password: '',
+    confirmPassword: '',
   });
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
@@ -79,10 +84,10 @@ export default function Register() {
     }
   };
 
-  const field = (id, label, props = {}) => (
+  const field = (id, label, props = {}, Input = 'input') => (
     <>
       <label htmlFor={id}>{label}</label>
-      <input
+      <Input
         id={id}
         value={form[id]}
         onChange={set(id)}
@@ -95,6 +100,7 @@ export default function Register() {
 
   return (
     <main className="auth-page">
+      <AuthBrand />
       <form className="auth-card" onSubmit={handleSubmit} noValidate>
         <h1>Create Account</h1>
 
@@ -126,7 +132,8 @@ export default function Register() {
           </>
         )}
 
-        {field('password', 'Password', { type: 'password', autoComplete: 'new-password' })}
+        {field('password', 'Password', { autoComplete: 'new-password' }, PasswordInput)}
+        {field('confirmPassword', 'Confirm password', { autoComplete: 'new-password' }, PasswordInput)}
 
         <button type="submit" disabled={loading}>
           {loading ? 'Creating account…' : 'Register'}

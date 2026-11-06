@@ -50,6 +50,11 @@ export const getUser = (id, token) => request(`/users/${id}`, { token });
 export const updateDeclarations = (id, declarations, token) =>
   request(`/users/${id}`, { method: 'PATCH', body: { declarations }, token });
 
+// PATCH /api/users/:id (self or admin) -> updated user.
+// Accepts any of { firstName, lastName, email }. Sending email: '' removes the email.
+export const updateProfile = (id, fields, token) =>
+  request(`/users/${id}`, { method: 'PATCH', body: fields, token });
+
 // GET /api/programs -> array of programs ({ _id, name, type, degree, catalogYear, ... }).
 // NOTE: this endpoint does not exist on the backend yet; callers must handle the failure.
 export const getPrograms = (token) => request('/programs', { token });
