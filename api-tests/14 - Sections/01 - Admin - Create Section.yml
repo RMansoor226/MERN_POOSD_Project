@@ -1,0 +1,77 @@
+info:
+  name: Admin - Create Section
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/sections"
+  body:
+    type: json
+    data: |-
+      {
+        "courseId": "{{courseCop3502Id}}",
+        "termId": "{{termFutureId}}",
+        "sectionNumber": "T{{runId}}",
+        "crn": "T{{runId}}",
+        "instructorIds": [
+          "{{instructorAedoId}}"
+        ],
+        "meetings": [
+          {
+            "days": [
+              "T",
+              "R"
+            ],
+            "startMinute": 600,
+            "endMinute": 675,
+            "building": "HEC",
+            "room": "200"
+          }
+        ],
+        "modality": "hybrid",
+        "capacity": 30,
+        "waitlistCapacity": 5,
+        "enrolledCount": 25,
+        "waitlistCount": 4
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("sectionId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("returns the new record with an _id", function () {
+          expect(res.getBody()._id).to.be.a("string");
+        });
+        test("fields round-trip", function () {
+          const b = res.getBody();
+          expect(b.courseId).to.equal(bru.getVar("courseCop3502Id"));
+          expect(b.termId).to.equal(bru.getVar("termFutureId"));
+          expect(b.capacity).to.equal(30);
+          expect(b.modality).to.equal("hybrid");
+          expect(b.meetings).to.have.length(1);
+          expect(b.meetings[0].days).to.deep.equal(["T", "R"]);
+        });
+        test("status defaults to open", function () {
+          expect(res.getBody().status).to.equal("open");
+        });
+        test("client-supplied counts are ignored", function () {
+          expect(res.getBody().enrolledCount).to.equal(0);
+          expect(res.getBody().waitlistCount).to.equal(0);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  The body deliberately sends enrolledCount and waitlistCount; the API must ignore them.

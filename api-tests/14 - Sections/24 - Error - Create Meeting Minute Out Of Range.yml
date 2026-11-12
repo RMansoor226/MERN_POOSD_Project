@@ -1,0 +1,55 @@
+info:
+  name: Error - Create Meeting Minute Out Of Range
+  type: http
+  seq: 24
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/sections"
+  body:
+    type: json
+    data: |-
+      {
+        "courseId": "{{courseCop3502Id}}",
+        "termId": "{{termFutureId}}",
+        "sectionNumber": "E4{{runId}}",
+        "crn": "E4{{runId}}",
+        "instructorIds": [
+          "{{instructorAedoId}}"
+        ],
+        "meetings": [
+          {
+            "days": [
+              "M"
+            ],
+            "startMinute": 1500,
+            "endMinute": 1600
+          }
+        ],
+        "modality": "hybrid",
+        "capacity": 30,
+        "waitlistCapacity": 5,
+        "enrolledCount": 25,
+        "waitlistCount": 4
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details has a meetings* entry", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(Object.keys(d).some((k) => k.startsWith("meetings"))).to.equal(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

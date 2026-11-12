@@ -1,0 +1,7 @@
+info:
+  name: 10 - Departments
+  type: folder
+  seq: 10
+
+request:
+  auth: inherit

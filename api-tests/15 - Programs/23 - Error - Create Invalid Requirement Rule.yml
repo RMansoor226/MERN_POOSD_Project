@@ -1,0 +1,46 @@
+info:
+  name: Error - Create Invalid Requirement Rule
+  type: http
+  seq: 23
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/programs"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Bad Rule {{runId}}",
+        "type": "minor",
+        "degree": "MINOR",
+        "departmentId": "{{deptMatId}}",
+        "catalogYear": 2026,
+        "totalCredits": 18,
+        "requirements": [
+          {
+            "name": "X",
+            "rule": "some"
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details has a requirements* entry", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(Object.keys(d).some((k) => k.startsWith("requirements"))).to.equal(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

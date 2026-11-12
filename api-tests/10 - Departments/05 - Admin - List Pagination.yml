@@ -1,0 +1,30 @@
+info:
+  name: Admin - List Pagination
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/departments?page=2&limit=1"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("honours page and limit", function () {
+          const b = res.getBody();
+          expect(b.items).to.have.length(1);
+          expect(b.page).to.equal(2);
+          expect(b.limit).to.equal(1);
+          expect(b.total).to.be.at.least(3);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

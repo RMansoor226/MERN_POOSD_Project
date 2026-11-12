@@ -1,0 +1,27 @@
+info:
+  name: Admin - List Search By Name
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/terms?q=Test Term {{runId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("finds exactly the created term", function () {
+          expect(res.getBody().items).to.have.length(1);
+          expect(res.getBody().items[0]._id).to.equal(bru.getVar("termId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

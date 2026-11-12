@@ -1,0 +1,41 @@
+info:
+  name: Admin - Update Replaces Requirements
+  type: http
+  seq: 10
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/programs/{{programId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "requirements": [
+          {
+            "name": "Only Core",
+            "rule": "all",
+            "courseIds": [
+              "{{courseMac2311Id}}"
+            ]
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("the whole array was replaced", function () {
+          expect(res.getBody().requirements).to.have.length(1);
+          expect(res.getBody().requirements[0].name).to.equal("Only Core");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

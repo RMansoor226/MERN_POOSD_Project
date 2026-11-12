@@ -1,0 +1,28 @@
+info:
+  name: Error - Create Malformed JSON
+  type: http
+  seq: 19
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/departments"
+  body:
+    type: json
+    data: |-
+      { "code": "X", "name":
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Malformed JSON body", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Malformed JSON body");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

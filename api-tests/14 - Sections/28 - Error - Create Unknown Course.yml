@@ -1,0 +1,61 @@
+info:
+  name: Error - Create Unknown Course
+  type: http
+  seq: 28
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/sections"
+  body:
+    type: json
+    data: |-
+      {
+        "courseId": "000000000000000000000001",
+        "termId": "{{termFutureId}}",
+        "sectionNumber": "E8{{runId}}",
+        "crn": "E8{{runId}}",
+        "instructorIds": [
+          "{{instructorAedoId}}"
+        ],
+        "meetings": [
+          {
+            "days": [
+              "T",
+              "R"
+            ],
+            "startMinute": 600,
+            "endMinute": 675,
+            "building": "HEC",
+            "room": "200"
+          }
+        ],
+        "modality": "hybrid",
+        "capacity": 30,
+        "waitlistCapacity": 5,
+        "enrolledCount": 25,
+        "waitlistCount": 4
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("courseId");
+        });
+        test("details.courseId explains the failure", function () {
+          expect(res.getBody().details["courseId"]).to.equal("references a record that does not exist");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

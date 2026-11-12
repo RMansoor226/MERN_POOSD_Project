@@ -1,0 +1,24 @@
+info:
+  name: Error - Get After Delete
+  type: http
+  seq: 41
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/programs/{{programId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 404 Program not found with that ID", function () {
+          expect(res.getStatus()).to.equal(404);
+          expect(res.getBody().error).to.equal("Program not found with that ID");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
