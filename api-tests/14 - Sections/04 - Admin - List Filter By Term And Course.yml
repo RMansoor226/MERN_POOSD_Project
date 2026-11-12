@@ -1,0 +1,28 @@
+info:
+  name: Admin - List Filter By Term And Course
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/sections?termId={{termFutureId}}&courseId={{courseCop3502Id}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("includes the created section", function () {
+          const items = res.getBody().items;
+          expect(items.some((s) => s._id === bru.getVar("sectionId"))).to.equal(true);
+          items.forEach((s) => expect(s.courseId.code).to.equal("COP3502"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

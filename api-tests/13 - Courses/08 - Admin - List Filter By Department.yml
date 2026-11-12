@@ -1,0 +1,28 @@
+info:
+  name: Admin - List Filter By Department
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/courses?departmentId={{deptCsId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("every result belongs to the department", function () {
+          const items = res.getBody().items;
+          expect(items.length).to.be.at.least(1);
+          items.forEach((x) => expect(x.departmentId._id).to.equal(bru.getVar("deptCsId")));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

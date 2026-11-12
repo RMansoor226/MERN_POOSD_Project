@@ -1,0 +1,26 @@
+info:
+  name: Admin - Delete Term
+  type: http
+  seq: 35
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/terms/{{termId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("returns the deleted record", function () {
+          expect(res.getBody()._id).to.equal(bru.getVar("termId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

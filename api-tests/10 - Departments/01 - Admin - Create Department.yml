@@ -1,0 +1,40 @@
+info:
+  name: Admin - Create Department
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/departments"
+  body:
+    type: json
+    data: |-
+      {
+        "code": "T{{runId}}",
+        "name": "Test Department {{runId}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("deptId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("returns the new record with an _id", function () {
+          expect(res.getBody()._id).to.be.a("string");
+        });
+        test("code is stored uppercase and name is kept", function () {
+          expect(res.getBody().code).to.equal("T" + bru.getVar("runId"));
+          expect(res.getBody().name).to.equal("Test Department " + bru.getVar("runId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

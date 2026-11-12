@@ -1,0 +1,26 @@
+info:
+  name: Admin - List Filter By Instructor
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/sections?instructorId={{instructorAedoId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("includes the created section", function () {
+          expect(res.getBody().items.some((s) => s._id === bru.getVar("sectionId"))).to.equal(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

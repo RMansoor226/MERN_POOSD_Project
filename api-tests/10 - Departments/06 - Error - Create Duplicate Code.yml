@@ -1,0 +1,39 @@
+info:
+  name: Error - Create Duplicate Code
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/departments"
+  body:
+    type: json
+    data: |-
+      {
+        "code": "T{{runId}}",
+        "name": "Another Name"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+        test("responds with a non-empty error string", function () {
+          expect(res.getBody().error).to.be.a("string").and.not.equal("");
+        });
+        test("does not expose Mongo internals", function () {
+          const text = JSON.stringify(res.getBody());
+          expect(text).to.not.include("E11000");
+          expect(text).to.not.include("keyPattern");
+          expect(text).to.not.include("stack");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

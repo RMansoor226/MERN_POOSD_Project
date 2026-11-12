@@ -1,0 +1,36 @@
+info:
+  name: Error - Create Code Too Long
+  type: http
+  seq: 18
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/departments"
+  body:
+    type: json
+    data: |-
+      {
+        "code": "ABCDEFGHIJK",
+        "name": "Long"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("code");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

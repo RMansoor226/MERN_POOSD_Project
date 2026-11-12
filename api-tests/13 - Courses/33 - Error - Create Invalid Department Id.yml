@@ -1,0 +1,58 @@
+info:
+  name: Error - Create Invalid Department Id
+  type: http
+  seq: 33
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/courses"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "tst",
+        "number": "{{runId}}8",
+        "title": "Test Course {{runId}}",
+        "credits": 3,
+        "description": "Created by the API tests",
+        "departmentId": "abc",
+        "attributes": [
+          "GenEd-Test"
+        ],
+        "prereqs": {
+          "op": "OR",
+          "items": [
+            {
+              "courseId": "{{courseCop3502Id}}",
+              "minGrade": "C"
+            },
+            {
+              "courseId": "{{courseMac2311Id}}",
+              "concurrentOk": true
+            }
+          ]
+        },
+        "coreqs": [],
+        "prereqText": "Test standing"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("departmentId");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,27 @@
+info:
+  name: Error - Delete Instructor In Use
+  type: http
+  seq: 31
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/instructors/{{instructorAedoId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409 Instructor is assigned to sections", function () {
+          expect(res.getStatus()).to.equal(409);
+          expect(res.getBody().error).to.equal("Instructor is assigned to sections");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Uses seeded data, so nothing is actually deleted. Run `npm run reseed` first.

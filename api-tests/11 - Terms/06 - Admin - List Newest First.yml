@@ -1,0 +1,27 @@
+info:
+  name: Admin - List Newest First
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/terms?limit=100"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("sorted by startDate descending", function () {
+          const d = res.getBody().items.map((x) => new Date(x.startDate).getTime());
+          expect(d).to.deep.equal([...d].sort((a, b) => b - a));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

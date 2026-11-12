@@ -1,0 +1,26 @@
+info:
+  name: Admin - List Search By Title Is Case Insensitive
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/courses?q=test course {{runId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("matches regardless of case", function () {
+          expect(res.getBody().items).to.have.length(1);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

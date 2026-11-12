@@ -1,0 +1,30 @@
+info:
+  name: Error - Update Not Found
+  type: http
+  seq: 28
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/instructors/000000000000000000000000"
+  body:
+    type: json
+    data: |-
+      {
+        "title": "Whatever"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 404 Instructor not found with that ID", function () {
+          expect(res.getStatus()).to.equal(404);
+          expect(res.getBody().error).to.equal("Instructor not found with that ID");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,29 @@
+info:
+  name: Student - Can List Departments
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/departments"
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("returns a paged list", function () {
+          expect(res.getBody().items).to.be.an("array");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

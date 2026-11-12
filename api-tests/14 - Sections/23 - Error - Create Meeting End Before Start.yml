@@ -1,0 +1,58 @@
+info:
+  name: Error - Create Meeting End Before Start
+  type: http
+  seq: 23
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/sections"
+  body:
+    type: json
+    data: |-
+      {
+        "courseId": "{{courseCop3502Id}}",
+        "termId": "{{termFutureId}}",
+        "sectionNumber": "E3{{runId}}",
+        "crn": "E3{{runId}}",
+        "instructorIds": [
+          "{{instructorAedoId}}"
+        ],
+        "meetings": [
+          {
+            "days": [
+              "M"
+            ],
+            "startMinute": 700,
+            "endMinute": 600
+          }
+        ],
+        "modality": "hybrid",
+        "capacity": 30,
+        "waitlistCapacity": 5,
+        "enrolledCount": 25,
+        "waitlistCount": 4
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details has a meetings* entry", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(Object.keys(d).some((k) => k.startsWith("meetings"))).to.equal(true);
+        });
+        test("details.meetings.0.endMinute explains the failure", function () {
+          expect(res.getBody().details["meetings.0.endMinute"]).to.equal("endMinute must be greater than startMinute");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

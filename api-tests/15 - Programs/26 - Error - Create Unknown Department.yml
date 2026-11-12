@@ -1,0 +1,66 @@
+info:
+  name: Error - Create Unknown Department
+  type: http
+  seq: 26
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/programs"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Ghost Dept {{runId}}",
+        "type": "minor",
+        "degree": "MINOR",
+        "departmentId": "000000000000000000000001",
+        "catalogYear": 2026,
+        "totalCredits": 18,
+        "requirements": [
+          {
+            "name": "Core",
+            "rule": "all",
+            "courseIds": [
+              "{{courseMac2311Id}}"
+            ]
+          },
+          {
+            "name": "Electives",
+            "rule": "anyN",
+            "n": 2,
+            "filter": {
+              "subject": "mac",
+              "minLevel": 3000
+            }
+          },
+          {
+            "name": "Credits",
+            "rule": "minCredits",
+            "credits": 6,
+            "filter": {
+              "attribute": "GenEd-Math"
+            }
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("departmentId");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

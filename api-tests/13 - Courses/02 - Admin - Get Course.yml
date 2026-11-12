@@ -1,0 +1,27 @@
+info:
+  name: Admin - Get Course
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/courses/{{courseId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("department is populated", function () {
+          expect(res.getBody()._id).to.equal(bru.getVar("courseId"));
+          expect(res.getBody().departmentId.code).to.equal("CS");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

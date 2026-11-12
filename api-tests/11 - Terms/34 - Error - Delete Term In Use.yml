@@ -1,0 +1,27 @@
+info:
+  name: Error - Delete Term In Use
+  type: http
+  seq: 34
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/terms/{{termFutureId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409 Term still has sections", function () {
+          expect(res.getStatus()).to.equal(409);
+          expect(res.getBody().error).to.equal("Term still has sections");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Uses seeded data, so nothing is actually deleted. Run `npm run reseed` first.

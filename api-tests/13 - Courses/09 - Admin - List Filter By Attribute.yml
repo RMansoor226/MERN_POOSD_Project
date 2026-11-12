@@ -1,0 +1,27 @@
+info:
+  name: Admin - List Filter By Attribute
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/courses?attribute=GenEd-Test"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("returns the course carrying the attribute", function () {
+          expect(res.getBody().items).to.have.length(1);
+          expect(res.getBody().items[0]._id).to.equal(bru.getVar("courseId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

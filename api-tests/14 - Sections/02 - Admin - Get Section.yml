@@ -1,0 +1,30 @@
+info:
+  name: Admin - Get Section
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/sections/{{sectionId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("course, term and instructors are populated", function () {
+          const b = res.getBody();
+          expect(b._id).to.equal(bru.getVar("sectionId"));
+          expect(b.courseId.code).to.equal("COP3502");
+          expect(b.termId.name).to.equal("Spring 2027");
+          expect(b.instructorIds[0].lastName).to.equal("Aedo");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,44 @@
+info:
+  name: Admin - Update Strips Counts And Immutable Ids
+  type: http
+  seq: 11
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/sections/{{sectionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "enrolledCount": 999,
+        "waitlistCount": 999,
+        "courseId": "{{courseMac2311Id}}",
+        "termId": "{{termPastId}}",
+        "capacity": 35
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("only capacity changed", function () {
+          const b = res.getBody();
+          expect(b.capacity).to.equal(35);
+          expect(b.enrolledCount).to.equal(0);
+          expect(b.waitlistCount).to.equal(0);
+          expect(b.courseId).to.equal(bru.getVar("courseCop3502Id"));
+          expect(b.termId).to.equal(bru.getVar("termFutureId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Counts belong to the enrollment flow; courseId and termId are copied onto enrollments, so they are create-only.

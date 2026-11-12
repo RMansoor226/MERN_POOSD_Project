@@ -1,0 +1,50 @@
+info:
+  name: Admin - Update Section
+  type: http
+  seq: 10
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/sections/{{sectionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "capacity": 40,
+        "status": "closed",
+        "modality": "online",
+        "meetings": [
+          {
+            "days": [
+              "M",
+              "W"
+            ],
+            "startMinute": 540,
+            "endMinute": 615,
+            "building": "MAP",
+            "room": "101"
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("fields changed", function () {
+          const b = res.getBody();
+          expect(b.capacity).to.equal(40);
+          expect(b.status).to.equal("closed");
+          expect(b.modality).to.equal("online");
+          expect(b.meetings[0].days).to.deep.equal(["M", "W"]);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
