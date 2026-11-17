@@ -14,7 +14,7 @@ function programLabel(p) {
 
 // Declared programs plus the "declare a program" flow.
 // The user document only stores { programId, catalogYear, declaredAt }, so program names
-// come from GET /api/programs when that endpoint exists.
+// come from GET /api/programs.
 export default function ProgramsCard({ user, onUserUpdated }) {
   const { session, signOut } = useAuth();
   const { status, programs } = usePrograms();
@@ -31,7 +31,7 @@ export default function ProgramsCard({ user, onUserUpdated }) {
 
   let blockedReason = '';
   if (status === 'loading') blockedReason = 'Loading programs…';
-  else if (status === 'unavailable') blockedReason = 'The program list is not available yet.';
+  else if (status === 'unavailable') blockedReason = 'The program list could not be loaded. Please try again later.';
   else if (available.length === 0) blockedReason = 'There are no other programs to declare.';
 
   const close = () => {
@@ -92,7 +92,7 @@ export default function ProgramsCard({ user, onUserUpdated }) {
       )}
 
       {status === 'unavailable' && declarations.length > 0 && (
-        <p className="hint">Program names will appear once the programs endpoint exists.</p>
+        <p className="hint">Program names could not be loaded right now.</p>
       )}
 
       {open ? (

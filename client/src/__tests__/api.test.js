@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, getUser, login, register } from '../api.js';
+import { ApiError, getCourses, getPrograms, getSections, getTerms, getUser, login, register, toQuery } from '../api.js';
 
 function mockFetch(status, body) {
   const fn = vi.fn().mockResolvedValue({
@@ -103,5 +103,60 @@ describe('api.getUser', () => {
       status: 401,
       message: 'Invalid or expired token',
     });
+  });
+});
+
+describe('api.getPrograms', () => {
+  const page = (items, total, n) => ({ ok: true, status: 200, json: async () => ({ items, total, page: n, limit: 100 }) });
+
+  it('unwraps the paginated response into a flat array with the token attached', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(page([{ _id: '1', name: 'CS' }], 1, 1));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const programs = await getPrograms('jwt');
+
+    expect(programs).toEqual([{ _id: '1', name: 'CS' }]);
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/programs?page=1&limit=100');
+    expect(options.headers.Authorization).toBe('Bearer jwt');
+  });
+
+  it('follows every page until all programs are loaded', async () => {
+    const first = Array.from({ length: 100 }, (_, i) => ({ _id: String(i) }));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(page(first, 101, 1))
+      .mockResolvedValueOnce(page([{ _id: '100' }], 101, 2));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const programs = await getPrograms('jwt');
+
+    expect(programs).toHaveLength(101);
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/programs?page=2&limit=100');
+  });
+});
+
+describe('catalog requests', () => {
+  it('toQuery skips empty values', () => {
+    expect(toQuery({ q: 'cop', departmentId: '', page: 2, x: undefined, y: null })).toBe('?q=cop&page=2');
+    expect(toQuery({})).toBe('');
+  });
+
+  it('getCourses and getSections send only the filters that are set', async () => {
+    const fetchMock = mockFetch(200, { items: [], total: 0, page: 1, limit: 20 });
+
+    await getCourses({ q: 'calc', departmentId: '', page: 1, limit: 20 }, 'jwt');
+    await getSections({ termId: 't1', courseId: undefined, status: 'open', page: 1, limit: 25 }, 'jwt');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/courses?q=calc&page=1&limit=20');
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/sections?termId=t1&status=open&page=1&limit=25');
+    expect(fetchMock.mock.calls[1][1].headers.Authorization).toBe('Bearer jwt');
+  });
+
+  it('getTerms loads every page', async () => {
+    const fetchMock = mockFetch(200, { items: [{ _id: 't1' }], total: 1, page: 1, limit: 100 });
+
+    expect(await getTerms('jwt')).toEqual([{ _id: 't1' }]);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/terms?page=1&limit=100');
   });
 });

@@ -3,6 +3,9 @@ import { useAuth } from './AuthContext.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Home from './pages/Home.jsx';
+import CourseCatalog from './pages/CourseCatalog.jsx';
+import CourseDetail from './pages/CourseDetail.jsx';
+import ClassSearch from './pages/ClassSearch.jsx';
 
 // Logged-in users skip the auth pages; logged-out users can't see Home.
 function GuestOnly({ children }) {
@@ -21,6 +24,9 @@ export default function App() {
       <Route path="/" element={<GuestOnly><Login /></GuestOnly>} />
       <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
       <Route path="/home" element={<RequireAuth><Home /></RequireAuth>} />
+      <Route path="/catalog" element={<RequireAuth><CourseCatalog /></RequireAuth>} />
+      <Route path="/catalog/:id" element={<RequireAuth><CourseDetail /></RequireAuth>} />
+      <Route path="/classes" element={<RequireAuth><ClassSearch /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

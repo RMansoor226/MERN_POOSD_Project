@@ -55,7 +55,7 @@ describe('Declare a program', () => {
     api.getPrograms.mockRejectedValue(Object.assign(new Error('Route not found'), { status: 404 }));
     const card = await renderPrograms();
 
-    expect(await within(card).findByText(/program list is not available yet/i)).toBeInTheDocument();
+    expect(await within(card).findByText(/program list could not be loaded/i)).toBeInTheDocument();
     expect(within(card).getByRole('button', { name: 'Declare a program' })).toBeDisabled();
   });
 

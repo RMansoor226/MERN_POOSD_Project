@@ -55,6 +55,51 @@ export const updateDeclarations = (id, declarations, token) =>
 export const updateProfile = (id, fields, token) =>
   request(`/users/${id}`, { method: 'PATCH', body: fields, token });
 
-// GET /api/programs -> array of programs ({ _id, name, type, degree, catalogYear, ... }).
-// NOTE: this endpoint does not exist on the backend yet; callers must handle the failure.
-export const getPrograms = (token) => request('/programs', { token });
+// --- Catalog (any logged-in user can read) ----------------------------------
+// List endpoints are paginated: { items, total, page, limit } with limit max 100.
+
+// "?a=1&b=x", skipping empty values so the backend only sees filters that are set
+export function toQuery(params = {}) {
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') qs.set(key, String(value));
+  }
+  const s = qs.toString();
+  return s ? `?${s}` : '';
+}
+
+// Walks every page of a list endpoint and resolves to one flat array.
+async function getAll(path, params, token) {
+  const limit = 100;
+  const all = [];
+  for (let page = 1; ; page += 1) {
+    const data = await request(`${path}${toQuery({ ...params, page, limit })}`, { token });
+    const items = data.items ?? [];
+    all.push(...items);
+    if (items.length < limit || all.length >= data.total) return all;
+  }
+}
+
+// GET /api/programs (all pages) -> [{ _id, name, type, degree, catalogYear, totalCredits, requirements, ... }]
+export const getPrograms = (token) => getAll('/programs', {}, token);
+
+// GET /api/departments (all pages) -> [{ _id, code, name }]
+export const getDepartments = (token) => getAll('/departments', {}, token);
+
+// GET /api/terms (all pages, newest startDate first)
+// -> [{ _id, name, year, season, startDate, endDate, registrationOpens, registrationCloses }]
+export const getTerms = (token) => getAll('/terms', {}, token);
+
+// GET /api/courses?page=&limit=&q=&departmentId=&subject=&attribute= -> one page.
+// q matches code or title. Each course has departmentId populated as { _id, code, name }.
+export const getCourses = (params, token) => request(`/courses${toQuery(params)}`, { token });
+
+// GET /api/courses/:id -> course (prereqs/coreqs hold raw course ids)
+export const getCourse = (id, token) => request(`/courses/${id}`, { token });
+
+// GET /api/sections?page=&limit=&termId=&courseId=&instructorId=&status=&modality= -> one page.
+// courseId -> { code, title, credits }, termId -> { name }, instructorIds -> [{ firstName, lastName, title }]
+export const getSections = (params, token) => request(`/sections${toQuery(params)}`, { token });
+
+// Every section matching the filters (all pages).
+export const getAllSections = (params, token) => getAll('/sections', params, token);
