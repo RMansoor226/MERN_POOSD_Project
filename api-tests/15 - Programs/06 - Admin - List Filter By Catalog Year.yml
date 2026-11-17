@@ -1,0 +1,27 @@
+info:
+  name: Admin - List Filter By Catalog Year
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/programs?catalogYear=2026"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("only the created program matches", function () {
+          expect(res.getBody().items.some((x) => x._id === bru.getVar("programId"))).to.equal(true);
+          res.getBody().items.forEach((x) => expect(x.catalogYear).to.equal(2026));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,41 @@
+info:
+  name: Error - Create Duplicate Name
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/terms"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Test Term {{runId}}",
+        "year": 2040,
+        "season": "summer",
+        "startDate": "2040-05-01",
+        "endDate": "2040-08-01",
+        "registrationOpens": "2040-02-01",
+        "registrationCloses": "2040-05-10"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+        test("does not expose Mongo internals", function () {
+          const text = JSON.stringify(res.getBody());
+          expect(text).to.not.include("E11000");
+          expect(text).to.not.include("keyPattern");
+          expect(text).to.not.include("stack");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

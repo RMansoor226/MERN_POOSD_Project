@@ -1,0 +1,27 @@
+info:
+  name: Error - Delete Course In Use
+  type: http
+  seq: 47
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/courses/{{courseCop4331Id}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409 Course has sections; cancel or remove them first", function () {
+          expect(res.getStatus()).to.equal(409);
+          expect(res.getBody().error).to.equal("Course has sections; cancel or remove them first");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Uses seeded data, so nothing is actually deleted. Run `npm run reseed` first.

@@ -1,0 +1,33 @@
+info:
+  name: Admin - Update Department
+  type: http
+  seq: 7
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/departments/{{deptId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Renamed Department {{runId}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("name changed, code untouched", function () {
+          expect(res.getBody().name).to.equal("Renamed Department " + bru.getVar("runId"));
+          expect(res.getBody().code).to.equal("T" + bru.getVar("runId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

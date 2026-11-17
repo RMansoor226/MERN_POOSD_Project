@@ -1,0 +1,41 @@
+info:
+  name: Error - Update Capacity Below Enrolled
+  type: http
+  seq: 31
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/sections/{{sectionFullId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "capacity": 1
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("enrolledCount");
+        });
+        test("details.enrolledCount explains the failure", function () {
+          expect(res.getBody().details["enrolledCount"]).to.equal("enrolledCount cannot exceed capacity");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  The seeded COP4331 0001 section has 2 enrolled students, so the model hook rejects the change and nothing is saved.

@@ -1,0 +1,51 @@
+info:
+  name: Error - Create Unknown Prereq Course
+  type: http
+  seq: 30
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/courses"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "tst",
+        "number": "{{runId}}8",
+        "title": "Test Course {{runId}}",
+        "credits": 3,
+        "description": "Created by the API tests",
+        "departmentId": "{{deptCsId}}",
+        "attributes": [
+          "GenEd-Test"
+        ],
+        "prereqs": {
+          "courseId": "000000000000000000000001"
+        },
+        "coreqs": [],
+        "prereqText": "Test standing"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("prereqs");
+        });
+        test("details.prereqs explains the failure", function () {
+          expect(res.getBody().details["prereqs"]).to.equal("references a course that does not exist");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

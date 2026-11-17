@@ -1,0 +1,55 @@
+info:
+  name: Error - Create Invalid Meeting Day
+  type: http
+  seq: 21
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/sections"
+  body:
+    type: json
+    data: |-
+      {
+        "courseId": "{{courseCop3502Id}}",
+        "termId": "{{termFutureId}}",
+        "sectionNumber": "E1{{runId}}",
+        "crn": "E1{{runId}}",
+        "instructorIds": [
+          "{{instructorAedoId}}"
+        ],
+        "meetings": [
+          {
+            "days": [
+              "X"
+            ],
+            "startMinute": 600,
+            "endMinute": 675
+          }
+        ],
+        "modality": "hybrid",
+        "capacity": 30,
+        "waitlistCapacity": 5,
+        "enrolledCount": 25,
+        "waitlistCount": 4
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details has a meetings* entry", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(Object.keys(d).some((k) => k.startsWith("meetings"))).to.equal(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

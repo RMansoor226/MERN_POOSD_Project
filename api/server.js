@@ -35,6 +35,24 @@ app.use('/api/users', usersRouter);
 const authRouter = require('./routes/authRoutes');
 app.use('/api/auth', authRouter);
 
+const departmentsRouter = require('./routes/departmentRoutes');
+app.use('/api/departments', departmentsRouter);
+
+const termsRouter = require('./routes/termRoutes');
+app.use('/api/terms', termsRouter);
+
+const coursesRouter = require('./routes/courseRoutes');
+app.use('/api/courses', coursesRouter);
+
+const instructorsRouter = require('./routes/instructorRoutes');
+app.use('/api/instructors', instructorsRouter);
+
+const sectionsRouter = require('./routes/sectionRoutes');
+app.use('/api/sections', sectionsRouter);
+
+const programsRouter = require('./routes/programRoutes');
+app.use('/api/programs', programsRouter);
+
 // GET /api/ping - Health check
 app.get('/api/ping', (req, res) => {
   res.status(200).json({ message: 'Hello World from MERN-Project' });

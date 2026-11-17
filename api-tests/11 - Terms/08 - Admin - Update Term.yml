@@ -1,0 +1,36 @@
+info:
+  name: Admin - Update Term
+  type: http
+  seq: 8
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/terms/{{termId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Renamed Term {{runId}}",
+        "registrationCloses": "2040-05-15"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("updated fields changed, others kept", function () {
+          const b = res.getBody();
+          expect(b.name).to.equal("Renamed Term " + bru.getVar("runId"));
+          expect(b.registrationCloses.slice(0, 10)).to.equal("2040-05-15");
+          expect(b.season).to.equal("summer");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

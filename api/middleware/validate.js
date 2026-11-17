@@ -5,7 +5,7 @@ const validate = (schema) => (req, res, next) => {
     if (!result.success) {
         const details = {};
         for (const issue of result.error.issues) details[issue.path.join('.') || '_'] = issue.message;
-        throw new AppError(400, 'Validation failed', details);
+        throw new AppError(400, 'Validation Failed', details);
     }
     req.body = result.data;     // only declared, coerced fields continue
     next();

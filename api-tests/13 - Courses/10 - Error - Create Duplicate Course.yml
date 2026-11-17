@@ -1,0 +1,61 @@
+info:
+  name: Error - Create Duplicate Course
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/courses"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "tst",
+        "number": "{{runId}}",
+        "title": "Test Course {{runId}}",
+        "credits": 3,
+        "description": "Created by the API tests",
+        "departmentId": "{{deptCsId}}",
+        "attributes": [
+          "GenEd-Test"
+        ],
+        "prereqs": {
+          "op": "OR",
+          "items": [
+            {
+              "courseId": "{{courseCop3502Id}}",
+              "minGrade": "C"
+            },
+            {
+              "courseId": "{{courseMac2311Id}}",
+              "concurrentOk": true
+            }
+          ]
+        },
+        "coreqs": [],
+        "prereqText": "Test standing"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+        test("does not expose Mongo internals", function () {
+          const text = JSON.stringify(res.getBody());
+          expect(text).to.not.include("E11000");
+          expect(text).to.not.include("keyPattern");
+          expect(text).to.not.include("stack");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Same subject + number produces the same code, which has a unique index.

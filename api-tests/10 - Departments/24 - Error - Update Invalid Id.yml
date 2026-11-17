@@ -1,0 +1,30 @@
+info:
+  name: Error - Update Invalid Id
+  type: http
+  seq: 24
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/departments/not-an-id"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Whatever"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Invalid id format", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Invalid id format");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

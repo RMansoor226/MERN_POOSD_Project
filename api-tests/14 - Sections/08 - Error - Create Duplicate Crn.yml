@@ -1,0 +1,61 @@
+info:
+  name: Error - Create Duplicate Crn
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/sections"
+  body:
+    type: json
+    data: |-
+      {
+        "courseId": "{{courseCop3502Id}}",
+        "termId": "{{termFutureId}}",
+        "sectionNumber": "D{{runId}}",
+        "crn": "T{{runId}}",
+        "instructorIds": [
+          "{{instructorAedoId}}"
+        ],
+        "meetings": [
+          {
+            "days": [
+              "T",
+              "R"
+            ],
+            "startMinute": 600,
+            "endMinute": 675,
+            "building": "HEC",
+            "room": "200"
+          }
+        ],
+        "modality": "hybrid",
+        "capacity": 30,
+        "waitlistCapacity": 5,
+        "enrolledCount": 25,
+        "waitlistCount": 4
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+        test("does not expose Mongo internals", function () {
+          const text = JSON.stringify(res.getBody());
+          expect(text).to.not.include("E11000");
+          expect(text).to.not.include("keyPattern");
+          expect(text).to.not.include("stack");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Same term and CRN, different section number.

@@ -1,0 +1,26 @@
+info:
+  name: Admin - Delete Section
+  type: http
+  seq: 45
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/sections/{{sectionId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("returns the deleted record", function () {
+          expect(res.getBody()._id).to.equal(bru.getVar("sectionId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

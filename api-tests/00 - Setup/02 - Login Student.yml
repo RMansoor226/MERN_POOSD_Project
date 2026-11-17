@@ -1,0 +1,38 @@
+info:
+  name: Login Student
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "login": "metoo",
+        "password": "ucf123!"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("studentToken", res.getBody().token);
+        bru.setVar("seedUserId", res.getBody().id);
+    - type: tests
+      code: |-
+        test("logs in as a student", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().role).to.equal("student");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Sets studentToken and seedUserId.
