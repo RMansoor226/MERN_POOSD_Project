@@ -90,6 +90,14 @@ export const RESOURCES = {
       { name: 'title', label: 'Title', type: 'text', placeholder: 'Associate Professor' },
       { name: 'email', label: 'Email', type: 'text', inputType: 'email' },
       { name: 'departmentId', label: 'Department', type: 'ref', ref: 'departments' },
+      {
+        name: 'userId',
+        label: 'Login account',
+        type: 'ref',
+        ref: 'users',
+        refWhere: (u) => u.role === 'instructor',
+        hint: 'Links an instructor-role login so they see their sections on their home page.',
+      },
     ],
   },
 
