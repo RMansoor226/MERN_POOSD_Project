@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as api from '../api.js';
 import { renderApp, SESSION } from '../test/renderApp.jsx';
 
 vi.mock('../api.js', () => ({
+  getTerms: vi.fn().mockResolvedValue([]),
   login: vi.fn(),
   register: vi.fn(),
   getUser: vi.fn(),
@@ -37,6 +38,7 @@ function renderHome(role = 'student') {
 beforeEach(() => {
   vi.clearAllMocks();
   api.getUser.mockResolvedValue(USER);
+  api.getTerms.mockResolvedValue([]);
 });
 
 describe('Student home page', () => {
@@ -94,10 +96,67 @@ describe('Student home page', () => {
     renderHome();
 
     await screen.findByRole('heading', { name: 'My Profile' });
-    for (const title of ['My Schedule', 'Waitlists', 'Degree Progress', 'Registration Dates']) {
+    for (const title of ['My Schedule', 'Waitlists', 'Degree Progress']) {
       expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     }
-    expect(screen.getAllByText(/waiting on backend/i)).toHaveLength(4);
+    expect(screen.getAllByText(/waiting on backend/i)).toHaveLength(3);
+  });
+
+  describe('Registration Dates card', () => {
+    const DAY = 24 * 60 * 60 * 1000;
+    const iso = (days) => new Date(Date.now() + days * DAY).toISOString();
+    const term = (id, name, opens, closes) => ({
+      _id: id,
+      name,
+      startDate: iso(closes + 5),
+      endDate: iso(closes + 100),
+      registrationOpens: iso(opens),
+      registrationCloses: iso(closes),
+    });
+    const card = async () =>
+      (await screen.findByRole('heading', { name: 'Registration Dates' })).closest('section');
+
+    it('lists open and upcoming windows, soonest first, and hides closed ones', async () => {
+      api.getTerms.mockResolvedValue([
+        term('fall', 'Fall 2027', 30.5, 90),
+        term('spring', 'Spring 2027', -10, 9.5),
+        term('old', 'Spring 2026', -400, -300),
+      ]);
+      renderHome();
+      const c = await card();
+
+      const items = await within(c).findAllByRole('listitem');
+      expect(items).toHaveLength(2);
+      expect(items[0]).toHaveTextContent('Spring 2027');
+      expect(items[0]).toHaveTextContent('Open now');
+      expect(items[0]).toHaveTextContent('Closes in 10 days');
+      expect(within(items[0]).getByRole('link', { name: /Browse Spring 2027 classes/ })).toHaveAttribute(
+        'href',
+        '/classes?term=spring'
+      );
+      expect(items[1]).toHaveTextContent('Fall 2027');
+      expect(items[1]).toHaveTextContent('Upcoming');
+      expect(items[1]).toHaveTextContent('Opens in 31 days');
+      expect(c).not.toHaveTextContent('Spring 2026');
+    });
+
+    it('says so when nothing is open or scheduled', async () => {
+      api.getTerms.mockResolvedValue([term('old', 'Spring 2026', -400, -300)]);
+      renderHome();
+      const c = await card();
+
+      expect(await within(c).findByText(/no registration periods are open or scheduled/i)).toBeInTheDocument();
+    });
+
+    it('shows an error with a retry button', async () => {
+      api.getTerms.mockRejectedValueOnce(new Error('Cannot reach the server.'));
+      renderHome();
+      const c = await card();
+
+      expect(await within(c).findByRole('alert')).toHaveTextContent('Cannot reach the server.');
+      await userEvent.click(within(c).getByRole('button', { name: 'Try again' }));
+      expect(await within(c).findByText(/no registration periods/i)).toBeInTheDocument();
+    });
   });
 
   it('shows an error with a retry button, and retry reloads the profile', async () => {

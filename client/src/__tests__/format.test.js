@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   cleanParams,
+  courseLevel,
+  describeFilter,
+  describeRule,
+  matchesFilter,
+  registrationStatus,
   defaultTermId,
   formatLocation,
   formatMeetingTime,
@@ -87,5 +92,41 @@ describe('small helpers', () => {
   it('drops empty URL params and the default page', () => {
     expect(cleanParams({ q: 'cop', department: '', page: 1 })).toEqual({ q: 'cop' });
     expect(cleanParams({ q: '', page: 3 })).toEqual({ page: '3' });
+  });
+});
+
+describe('registrationStatus', () => {
+  const term = { registrationOpens: '2026-11-02T00:00:00Z', registrationCloses: '2027-01-22T00:00:00Z' };
+
+  it('reports upcoming, open and closed windows with days to the next boundary', () => {
+    expect(registrationStatus(term, new Date('2026-10-31T00:00:00Z'))).toEqual({ state: 'upcoming', days: 2 });
+    expect(registrationStatus(term, new Date('2027-01-20T12:00:00Z'))).toEqual({ state: 'open', days: 2 });
+    expect(registrationStatus(term, new Date('2027-01-22T00:00:00Z'))).toEqual({ state: 'open', days: 0 });
+    expect(registrationStatus(term, new Date('2027-02-01T00:00:00Z'))).toEqual({ state: 'closed', days: 0 });
+  });
+});
+
+describe('program requirement helpers', () => {
+  it('describes each rule', () => {
+    expect(describeRule({ rule: 'all' })).toBe('Complete all of these courses');
+    expect(describeRule({ rule: 'anyN', n: 1 })).toBe('Choose 1 course');
+    expect(describeRule({ rule: 'anyN', n: 2 })).toBe('Choose 2 courses');
+    expect(describeRule({ rule: 'minCredits', credits: 7 })).toBe('Earn at least 7 credits');
+  });
+
+  it('describes filters', () => {
+    expect(describeFilter({ subject: 'cop', minLevel: 4000 })).toBe('any COP course at the 4000 level or above');
+    expect(describeFilter({ attribute: 'Writing Intensive' })).toBe('any course with the Writing Intensive attribute');
+  });
+
+  it('matches courses by subject, level and attribute', () => {
+    const c = { subject: 'COP', number: '4331', code: 'COP4331', attributes: ['Writing Intensive'] };
+    expect(courseLevel({ number: '3502L' })).toBe(3502);
+    expect(courseLevel({ code: 'MAC2311' })).toBe(2311);
+    expect(matchesFilter(c, { subject: 'cop', minLevel: 4000 })).toBe(true);
+    expect(matchesFilter(c, { minLevel: 5000 })).toBe(false);
+    expect(matchesFilter(c, { subject: 'MAC' })).toBe(false);
+    expect(matchesFilter(c, { attribute: 'Writing Intensive' })).toBe(true);
+    expect(matchesFilter(c, { attribute: 'GenEd-Math' })).toBe(false);
   });
 });

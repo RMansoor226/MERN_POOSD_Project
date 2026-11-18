@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as api from '../api.js';
 import { renderApp, SESSION } from '../test/renderApp.jsx';
 
 vi.mock('../api.js', () => ({
+  getTerms: vi.fn().mockResolvedValue([]),
   login: vi.fn(),
   register: vi.fn(),
   getUser: vi.fn(),
@@ -48,7 +49,7 @@ describe('Declare a program', () => {
     const card = await renderPrograms();
 
     expect(within(card).getByText(/have not declared a major or minor/i)).toBeInTheDocument();
-    expect(await within(card).findByRole('button', { name: 'Declare a program' })).toBeEnabled();
+    await waitFor(() => expect(within(card).getByRole('button', { name: 'Declare a program' })).toBeEnabled());
   });
 
   it('disables the button with a note while the program list is unavailable', async () => {
@@ -166,5 +167,76 @@ describe('Declare a program', () => {
 
     expect(await within(card).findByText(/no other programs to declare/i)).toBeInTheDocument();
     expect(within(card).getByRole('button', { name: 'Declare a program' })).toBeDisabled();
+  });
+});
+
+describe('Remove a declared program', () => {
+  const MATH_DECLARATION = { programId: MATH._id, catalogYear: 2025, declaredAt: '2026-02-01T00:00:00.000Z' };
+
+  async function renderWithTwo() {
+    api.getUser.mockResolvedValue({ ...USER, declarations: [CS_DECLARATION, MATH_DECLARATION] });
+    const card = await renderPrograms();
+    await within(card).findByRole('link', { name: 'Computer Science' });
+    return card;
+  }
+
+  it('links each declared program to its detail page', async () => {
+    const card = await renderWithTwo();
+
+    expect(within(card).getByRole('link', { name: 'Computer Science' })).toHaveAttribute('href', `/programs/${CS._id}`);
+    expect(within(card).getByRole('link', { name: 'Mathematics' })).toHaveAttribute('href', `/programs/${MATH._id}`);
+  });
+
+  it('asks for confirmation, then sends the list without that program', async () => {
+    api.updateDeclarations.mockResolvedValue({ ...USER, declarations: [MATH_DECLARATION] });
+    const card = await renderWithTwo();
+
+    await userEvent.click(within(card).getByRole('button', { name: 'Remove Computer Science' }));
+    expect(api.updateDeclarations).not.toHaveBeenCalled();
+    const confirm = within(card).getByRole('group', { name: 'Confirm removing Computer Science' });
+    expect(confirm).toHaveTextContent('Remove Computer Science?');
+
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Yes, remove' }));
+
+    expect(api.updateDeclarations).toHaveBeenCalledWith('abc123', [MATH_DECLARATION], 'fake.jwt.token');
+    await waitFor(() => expect(within(card).queryByRole('link', { name: 'Computer Science' })).not.toBeInTheDocument());
+    expect(within(card).getByRole('link', { name: 'Mathematics' })).toBeInTheDocument();
+    expect(within(card).queryByRole('group')).not.toBeInTheDocument();
+  });
+
+  it('can back out with Keep', async () => {
+    const card = await renderWithTwo();
+
+    await userEvent.click(within(card).getByRole('button', { name: 'Remove Mathematics' }));
+    await userEvent.click(within(card).getByRole('button', { name: 'Keep' }));
+
+    expect(within(card).queryByRole('group')).not.toBeInTheDocument();
+    expect(within(card).getByRole('button', { name: 'Remove Mathematics' })).toBeInTheDocument();
+    expect(api.updateDeclarations).not.toHaveBeenCalled();
+  });
+
+  it('removing the last program sends an empty list', async () => {
+    api.getUser.mockResolvedValue({ ...USER, declarations: [CS_DECLARATION] });
+    api.updateDeclarations.mockResolvedValue({ ...USER, declarations: [] });
+    const card = await renderPrograms();
+    await within(card).findByRole('link', { name: 'Computer Science' });
+
+    await userEvent.click(within(card).getByRole('button', { name: 'Remove Computer Science' }));
+    await userEvent.click(within(card).getByRole('button', { name: 'Yes, remove' }));
+
+    expect(api.updateDeclarations).toHaveBeenCalledWith('abc123', [], 'fake.jwt.token');
+    expect(await within(card).findByText(/have not declared a major or minor/i)).toBeInTheDocument();
+  });
+
+  it('keeps the program and shows the error when removing fails', async () => {
+    api.updateDeclarations.mockRejectedValue(Object.assign(new Error('Cannot reach the server.'), { status: 0 }));
+    const card = await renderWithTwo();
+
+    await userEvent.click(within(card).getByRole('button', { name: 'Remove Computer Science' }));
+    await userEvent.click(within(card).getByRole('button', { name: 'Yes, remove' }));
+
+    expect(await within(card).findByRole('alert')).toHaveTextContent('Cannot reach the server.');
+    expect(within(card).getByRole('link', { name: 'Computer Science' })).toBeInTheDocument();
+    expect(within(card).getByRole('button', { name: 'Yes, remove' })).toBeEnabled();
   });
 });

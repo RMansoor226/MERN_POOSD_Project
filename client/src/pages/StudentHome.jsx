@@ -3,6 +3,7 @@ import { useCurrentUser } from '../hooks/useCurrentUser.js';
 import ComingSoonCard from '../components/ComingSoonCard.jsx';
 import ProfileCard from '../components/ProfileCard.jsx';
 import ProgramsCard from '../components/ProgramsCard.jsx';
+import RegistrationDatesCard from '../components/RegistrationDatesCard.jsx';
 
 export default function StudentHome() {
   const { session } = useAuth();
@@ -32,6 +33,8 @@ export default function StudentHome() {
           </>
         )}
 
+        <RegistrationDatesCard />
+
         <ComingSoonCard
           title="My Schedule"
           description="Your enrolled classes for the current term will show here."
@@ -45,12 +48,7 @@ export default function StudentHome() {
         <ComingSoonCard
           title="Degree Progress"
           description="Completed and remaining requirements for your declared programs will show here."
-          endpoint="GET /api/programs and a degree audit"
-        />
-        <ComingSoonCard
-          title="Registration Dates"
-          description="When registration opens and closes for upcoming terms will show here."
-          endpoint="GET /api/terms"
+          endpoint="GET /api/enrollments (completed courses) for a degree audit"
         />
       </div>
     </>

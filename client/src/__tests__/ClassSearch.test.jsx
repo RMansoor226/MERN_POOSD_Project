@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as api from '../api.js';
 import { renderApp, SESSION } from '../test/renderApp.jsx';
@@ -83,9 +83,11 @@ describe('Class search', () => {
     renderApp('/classes');
 
     expect(await screen.findByLabelText('Term')).toHaveValue('tNext');
-    expect(api.getSections).toHaveBeenCalledWith(
-      { termId: 'tNext', courseId: undefined, status: '', modality: '', page: 1, limit: 25 },
-      TOKEN
+    await waitFor(() =>
+      expect(api.getSections).toHaveBeenCalledWith(
+        { termId: 'tNext', courseId: undefined, status: '', modality: '', page: 1, limit: 25 },
+        TOKEN
+      )
     );
 
     const full = await screen.findByRole('row', { name: /10004/ });

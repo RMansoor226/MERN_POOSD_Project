@@ -83,6 +83,10 @@ async function getAll(path, params, token) {
 // GET /api/programs (all pages) -> [{ _id, name, type, degree, catalogYear, totalCredits, requirements, ... }]
 export const getPrograms = (token) => getAll('/programs', {}, token);
 
+// GET /api/programs/:id -> program. requirements[].courseIds are bare course ids and
+// departmentId is a bare id (not populated).
+export const getProgram = (id, token) => request(`/programs/${id}`, { token });
+
 // GET /api/departments (all pages) -> [{ _id, code, name }]
 export const getDepartments = (token) => getAll('/departments', {}, token);
 
@@ -103,3 +107,6 @@ export const getSections = (params, token) => request(`/sections${toQuery(params
 
 // Every section matching the filters (all pages).
 export const getAllSections = (params, token) => getAll('/sections', params, token);
+
+// Every course matching the filters (all pages).
+export const getAllCourses = (params, token) => getAll('/courses', params, token);

@@ -5,6 +5,7 @@ import * as api from '../api.js';
 import { renderApp, SESSION } from '../test/renderApp.jsx';
 
 vi.mock('../api.js', () => ({
+  getTerms: vi.fn().mockResolvedValue([]),
   login: vi.fn(),
   register: vi.fn(),
   getUser: vi.fn(),

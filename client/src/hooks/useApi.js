@@ -22,19 +22,22 @@ export function useApi(load, deps) {
     let cancelled = false;
     setState((prev) => ({ status: 'loading', data: prev.data, error: '' }));
 
-    load(session.token).then(
-      (data) => {
-        if (!cancelled) setState({ status: 'ready', data, error: '' });
-      },
-      (err) => {
-        if (cancelled) return;
-        if (err.status === 401) {
-          signOut();
-          return;
+    // Promise.resolve().then(...) turns a synchronous throw into a normal rejection
+    Promise.resolve()
+      .then(() => load(session.token))
+      .then(
+        (data) => {
+          if (!cancelled) setState({ status: 'ready', data, error: '' });
+        },
+        (err) => {
+          if (cancelled) return;
+          if (err.status === 401) {
+            signOut();
+            return;
+          }
+          setState({ status: 'error', data: null, error: err.message || 'Something went wrong.' });
         }
-        setState({ status: 'error', data: null, error: err.message || 'Something went wrong.' });
-      }
-    );
+      );
 
     return () => {
       cancelled = true;

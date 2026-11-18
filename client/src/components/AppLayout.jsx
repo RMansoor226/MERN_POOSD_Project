@@ -7,6 +7,7 @@ const NAV = [
   { to: '/home', label: 'Home' },
   { to: '/catalog', label: 'Course Catalog' },
   { to: '/classes', label: 'Class Search' },
+  { to: '/programs', label: 'Programs' },
 ];
 
 // Shared shell for logged-in pages: top bar with navigation, the user's role and a logout button.
