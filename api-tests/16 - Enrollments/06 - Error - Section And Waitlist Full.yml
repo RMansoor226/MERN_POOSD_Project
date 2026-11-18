@@ -1,0 +1,33 @@
+info:
+  name: Error - Section And Waitlist Full
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/enrollments"
+  body:
+    type: json
+    data: |-
+      {
+        "sectionId": "{{enrSectionId}}",
+        "studentId": "{{seedUserId}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  The admin registers the same student again: refused (already enrolled in this course this term).

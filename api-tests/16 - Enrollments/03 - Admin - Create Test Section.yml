@@ -1,0 +1,41 @@
+info:
+  name: Admin - Create Test Section
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/sections"
+  body:
+    type: json
+    data: |-
+      {
+        "courseId": "{{enrCourseId}}",
+        "termId": "{{termFutureId}}",
+        "sectionNumber": "E{{runId}}",
+        "crn": "E{{runId}}",
+        "instructorIds": ["{{instructorAedoId}}"],
+        "capacity": 1,
+        "waitlistCapacity": 1
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("enrSectionId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  One seat and one waitlist slot, taught by Aedo (instructor1), in Spring 2027 whose registration is open.

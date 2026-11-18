@@ -1,0 +1,43 @@
+info:
+  name: Student - Register Gets The Seat
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/enrollments"
+  body:
+    type: json
+    data: |-
+      {
+        "sectionId": "{{enrSectionId}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: after-response
+      code: |-
+        bru.setVar("enrStudentEnrollmentId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("enrolled in the section", function () {
+          const b = res.getBody();
+          expect(b.status).to.equal("enrolled");
+          expect(b.sectionId._id).to.equal(bru.getVar("enrSectionId"));
+          expect(b.courseId.code).to.equal("ENR" + bru.getVar("runId"));
+          expect(b.studentId._id).to.equal(bru.getVar("seedUserId"));
+          expect(b.warnings).to.be.an("array");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

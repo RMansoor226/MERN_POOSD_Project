@@ -1,0 +1,39 @@
+info:
+  name: Other Student - Register Joins Waitlist
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/enrollments"
+  body:
+    type: json
+    data: |-
+      {
+        "sectionId": "{{enrSectionId}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("otherStudentToken"));
+    - type: after-response
+      code: |-
+        bru.setVar("enrOtherEnrollmentId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("waitlisted first in line", function () {
+          expect(res.getBody().status).to.equal("waitlisted");
+          expect(res.getBody().waitlistPosition).to.equal(1);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

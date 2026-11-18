@@ -1,0 +1,38 @@
+info:
+  name: Admin - Create Test Course
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/courses"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "ENR",
+        "number": "{{runId}}",
+        "title": "Enrollment Test Course",
+        "credits": 3
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("enrCourseId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  A course of its own per run, so the one-section-per-course rule never collides with earlier runs.

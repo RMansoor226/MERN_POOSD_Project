@@ -1,0 +1,35 @@
+info:
+  name: Student - Drop Promotes Waitlist
+  type: http
+  seq: 13
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/enrollments/{{enrStudentEnrollmentId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "status": "dropped"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("dropped", function () {
+          expect(res.getBody().status).to.equal("dropped");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

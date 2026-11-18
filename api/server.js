@@ -53,6 +53,9 @@ app.use('/api/sections', sectionsRouter);
 const programsRouter = require('./routes/programRoutes');
 app.use('/api/programs', programsRouter);
 
+const enrollmentsRouter = require('./routes/enrollmentRoutes');
+app.use('/api/enrollments', enrollmentsRouter);
+
 // GET /api/ping - Health check
 app.get('/api/ping', (req, res) => {
   res.status(200).json({ message: 'Hello World from MERN-Project' });
