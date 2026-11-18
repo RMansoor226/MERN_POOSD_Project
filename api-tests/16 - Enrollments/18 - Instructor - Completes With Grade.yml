@@ -1,0 +1,37 @@
+info:
+  name: Instructor - Completes With Grade
+  type: http
+  seq: 18
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/enrollments/{{enrOtherEnrollmentId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "status": "completed",
+        "grade": "B+"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("instructorToken"));
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("completed with the grade", function () {
+          expect(res.getBody().status).to.equal("completed");
+          expect(res.getBody().grade).to.equal("B+");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

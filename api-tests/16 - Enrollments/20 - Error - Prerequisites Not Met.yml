@@ -1,0 +1,53 @@
+info:
+  name: Error - Prerequisites Not Met
+  type: http
+  seq: 20
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/enrollments"
+  body:
+    type: json
+    data: |-
+      {
+        "sectionId": "{{enrPrereqSectionId}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("otherStudentToken"));
+        const axios = require("axios");
+        const base = bru.getEnvVar("baseURL");
+        const headers = { Authorization: "Bearer " + bru.getVar("adminToken") };
+        const runId = bru.getVar("runId");
+        // a course of its own that requires COP3502 (C or better), which student1 has never taken
+        const course = (await axios.post(base + "/api/courses", {
+          subject: "ENP", number: runId, title: "Enrollment Prereq Test", credits: 3,
+          prereqs: { courseId: bru.getVar("courseCop3502Id"), minGrade: "C" }
+        }, { headers })).data;
+        bru.setVar("enrPrereqCourseId", course._id);
+        const section = (await axios.post(base + "/api/sections", {
+          courseId: course._id, termId: bru.getVar("termFutureId"), sectionNumber: "P" + runId, crn: "P" + runId, capacity: 5
+        }, { headers })).data;
+        bru.setVar("enrPrereqSectionId", section._id);
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+        test("explains what is missing", function () {
+          expect(res.getBody().error).to.equal("Prerequisites not met");
+          expect(res.getBody().details.prereqs).to.equal("Requires COP3502 (C or better)");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Creates a course that requires COP3502 (C or better); student1 has no completed courses, so registration is refused.

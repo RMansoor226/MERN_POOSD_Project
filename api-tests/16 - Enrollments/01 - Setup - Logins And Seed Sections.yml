@@ -1,0 +1,45 @@
+info:
+  name: Setup - Logins And Seed Sections
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/ping"
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const axios = require("axios");
+        const base = bru.getEnvVar("baseURL");
+        const login = async (l) => (await axios.post(base + "/api/auth/login", { login: l, password: "ucf123!" })).data;
+        // 00 - Setup stores only the second student's id, so log in again for a token
+        const other = await login("student1");
+        bru.setVar("otherStudentToken", other.token);
+        const instructor = await login("instructor1");
+        bru.setVar("instructorToken", instructor.token);
+        bru.setVar("advisorToken", (await login("advisor1")).token);
+
+        const headers = { Authorization: "Bearer " + bru.getVar("adminToken") };
+        const sections = (await axios.get(base + "/api/sections?limit=100", { headers })).data.items;
+        const find = (code, num, term) => sections.find((x) => x.courseId.code === code && x.sectionNumber === num && x.termId.name === term);
+        const need = (v, what) => { if (!v) throw new Error("Seed record missing: " + what + " (run npm run reseed)"); return v._id; };
+        bru.setVar("sectionRamanId", need(find("COP4331", "0002", "Spring 2027"), "COP4331 0002 Spring 2027"));
+        bru.setVar("sectionPastId", need(find("COP3502", "0001", "Spring 2026"), "COP3502 0001 Spring 2026"));
+    - type: tests
+      code: |-
+        test("logged in student1, instructor1 and advisor1 and found the seed sections", function () {
+          ["otherStudentToken", "instructorToken", "advisorToken", "sectionRamanId", "sectionPastId"].forEach((k) => expect(bru.getVar(k), k).to.be.a("string"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Needs the seed's instructor1 login (linked to John Aedo). Run npm run reseed if it is missing.
+  Sets otherStudentToken, instructorToken, advisorToken, sectionRamanId (taught by Raman) and sectionPastId (closed, Spring 2026).
