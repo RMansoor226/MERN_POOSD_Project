@@ -5,6 +5,8 @@ import * as api from '../api.js';
 import { renderApp, SESSION } from '../test/renderApp.jsx';
 
 vi.mock('../api.js', () => ({
+  getAllEnrollments: vi.fn().mockResolvedValue([]),
+  getProgram: vi.fn().mockRejectedValue(Object.assign(new Error('Program not found'), { status: 404 })),
   getTerms: vi.fn().mockResolvedValue([]),
   login: vi.fn(),
   register: vi.fn(),
@@ -92,14 +94,15 @@ describe('Student home page', () => {
     expect(await screen.findByText(/have not declared a major or minor/i)).toBeInTheDocument();
   });
 
-  it('shows placeholders for sections that need endpoints that do not exist yet', async () => {
+  it('shows the schedule, waitlist and degree progress cards with no placeholders left', async () => {
     renderHome();
 
     await screen.findByRole('heading', { name: 'My Profile' });
     for (const title of ['My Schedule', 'Waitlists', 'Degree Progress']) {
       expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     }
-    expect(screen.getAllByText(/waiting on backend/i)).toHaveLength(3);
+    expect(screen.queryByText(/waiting on backend/i)).toBeNull();
+    expect(await screen.findByText(/not registered for any classes/i)).toBeInTheDocument();
   });
 
   describe('Registration Dates card', () => {

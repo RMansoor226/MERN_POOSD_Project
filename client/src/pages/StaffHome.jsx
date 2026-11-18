@@ -58,7 +58,17 @@ function TeachingCard() {
             data.groups.map(({ term, sections }) => (
               <div key={term._id} className="term-group">
                 <h3>{term.name}</h3>
-                <SectionTable sections={sections} showCourse caption={`Your sections, ${term.name}`} />
+                <SectionTable
+                  sections={sections}
+                  showCourse
+                  caption={`Your sections, ${term.name}`}
+                  actionLabel="Roster"
+                  action={(s) => (
+                    <Link to={`/teaching/${s._id}`} aria-label={`Roster for ${s.courseId?.code} section ${s.sectionNumber}`}>
+                      Roster
+                    </Link>
+                  )}
+                />
               </div>
             ))
           )}
@@ -85,24 +95,17 @@ export default function StaffHome() {
         {session.role === 'instructor' && <TeachingCard />}
         {status === 'ready' && <ProfileCard user={user} onUserUpdated={setUser} />}
 
-        {session.role === 'instructor' && (
-          <ComingSoonCard
-            title="Class Rosters"
-            description="The students enrolled in each of your sections will show here."
-            endpoint="GET /api/enrollments?sectionId= (roster)"
-          />
-        )}
         {session.role === 'advisor' && (
           <>
             <ComingSoonCard
               title="My Advisees"
               description="Students assigned to you, with their declared programs, will show here."
-              endpoint="advisor access to student records (GET /api/users is admin-only)"
+              endpoint="a way for advisors to find students (GET /api/users is admin-only)"
             />
             <ComingSoonCard
               title="Degree Audits"
               description="Completed and remaining requirements for each advisee will show here."
-              endpoint="GET /api/enrollments (completed courses)"
+              endpoint="advisee lookup (advisors can already read GET /api/enrollments?studentId=)"
             />
           </>
         )}

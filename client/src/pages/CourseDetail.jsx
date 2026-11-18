@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi.js';
 import AppLayout from '../components/AppLayout.jsx';
 import LoadError from '../components/LoadError.jsx';
 import SectionTable from '../components/SectionTable.jsx';
+import { useRegistration } from '../components/Registration.jsx';
 
 // Every course id referenced by a prereq tree ({ op, items } groups and { courseId } leaves).
 function prereqIds(node) {
@@ -73,6 +74,7 @@ export default function CourseDetail() {
   const { id } = useParams();
   const detail = useApi((token) => loadCourse(id, token), [id]);
   const sections = useApi((token) => loadSections(id, token), [id]);
+  const registration = useRegistration(() => sections.reload());
 
   const course = detail.data?.course;
   const lookup = detail.data?.lookup ?? {};
@@ -144,13 +146,19 @@ export default function CourseDetail() {
               <h2 id="course-sections-heading">Sections</h2>
               <Link to={`/classes?course=${encodeURIComponent(course.code)}`}>Search classes for {course.code} →</Link>
             </div>
+            {registration.banner}
             {sections.status === 'error' && <LoadError message={sections.error} onRetry={sections.reload} />}
             {sections.status === 'loading' && !sections.data && <p role="status">Loading sections…</p>}
             {sections.data?.length === 0 && <p className="hint">This course has no scheduled sections.</p>}
             {sections.data?.map(({ term, sections: list }) => (
               <div key={term._id} className="term-group">
                 <h3>{term.name}</h3>
-                <SectionTable sections={list} caption={`${course.code} sections, ${term.name}`} />
+                <SectionTable
+                  sections={list}
+                  caption={`${course.code} sections, ${term.name}`}
+                  action={registration.action && ((s) => registration.action(s, term))}
+                  actionLabel="Register"
+                />
               </div>
             ))}
           </section>
