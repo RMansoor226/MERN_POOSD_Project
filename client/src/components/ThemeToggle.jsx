@@ -22,10 +22,16 @@ function MoonIcon() {
 export default function ThemeToggle({ className = '' }) {
   const [theme, setTheme] = useState(currentTheme);
 
-  useEffect(() => applyTheme(theme), [theme]);
+  // the page attribute changes at the same moment as the button, never a frame later
+  const show = (t) => {
+    applyTheme(t);
+    setTheme(t);
+  };
+
+  useEffect(() => applyTheme(theme), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // with no saved choice, keep following the OS setting
-  useEffect(() => watchSystemTheme((t) => !storedTheme() && setTheme(t)), []);
+  useEffect(() => watchSystemTheme((t) => !storedTheme() && show(t)), []);
 
   const next = theme === 'dark' ? 'light' : 'dark';
 
@@ -37,7 +43,7 @@ export default function ThemeToggle({ className = '' }) {
       title={`Switch to ${next} mode`}
       onClick={() => {
         saveTheme(next);
-        setTheme(next);
+        show(next);
       }}
     >
       {theme === 'dark' ? <SunIcon /> : <MoonIcon />}

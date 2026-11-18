@@ -1324,6 +1324,396 @@ a.course-code:hover {
 }
 
 /* ==========================================================================
+   Admin
+   ========================================================================== */
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-note {
+  margin: -0.75rem 0 1.25rem;
+  font-size: 0.9rem;
+}
+
+/* links styled as buttons (New ..., Cancel) */
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 1.1rem;
+  font-weight: 700;
+  color: #111;
+  text-decoration: none;
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 45%, var(--gold-deep) 100%);
+  border: 1px solid rgba(180, 120, 0, 0.35);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 6px 18px -6px var(--gold-glow);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-link:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 12px 28px -8px var(--gold-glow);
+}
+
+.btn-link-secondary {
+  color: var(--ink);
+  background: var(--surface-strong);
+  border-color: var(--border);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--shadow-sm);
+}
+
+.btn-small {
+  margin: 0;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.admin-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  height: 100%;
+  text-decoration: none;
+}
+
+.admin-tile:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--gold) 55%, transparent);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--shadow-lg), 0 18px 40px -20px var(--gold-glow);
+}
+
+.admin-tile-count {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--ink) 30%, var(--gold-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.admin-tile-title {
+  font-weight: 700;
+}
+
+.admin-table td.mono {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* the generic first-column mono rule is for class search CRNs only */
+.admin-table td:first-child:not(.mono) {
+  font-family: inherit;
+  font-weight: inherit;
+}
+
+.row-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.row-actions > a {
+  margin-right: 0.5rem;
+}
+
+.row-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  white-space: normal;
+}
+
+.row-confirm .field-error {
+  flex-basis: 100%;
+  margin: 0.2rem 0 0;
+  text-align: right;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.form-field.half {
+  grid-column: span 3;
+}
+
+.form-field.third {
+  grid-column: span 2;
+}
+
+.form-field .hint {
+  margin: 0.3rem 0 0;
+}
+
+.required {
+  color: var(--danger);
+}
+
+textarea {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-ring), 0 0 24px -6px var(--gold-glow);
+}
+
+select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--divider);
+}
+
+.card h2.form-group-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.repeat-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.repeat-list > button {
+  margin: 0;
+}
+
+.repeat-row {
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1rem 0.5rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--divider);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+}
+
+.repeat-row legend {
+  padding: 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.repeat-row > .btn-text {
+  margin-top: 0.5rem;
+}
+
+.day-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.day-toggle {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.day-toggle input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.day-toggle.is-on {
+  color: #111;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  border-color: var(--gold-deep);
+  box-shadow: 0 0 14px -4px var(--gold-glow);
+}
+
+.day-toggle:has(input:focus-visible) {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.check-label input {
+  width: auto;
+  height: auto;
+  accent-color: var(--gold-deep);
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.25rem 0.15rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--gold-tint);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  border-radius: 999px;
+}
+
+.chip-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.chip-remove:hover:not(:disabled) {
+  transform: none;
+  color: var(--danger);
+  background: var(--danger-bg);
+  box-shadow: none;
+}
+
+.prereq-group {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--divider);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+}
+
+.prereq-group.is-or {
+  border-left-color: #7c8cff;
+}
+
+.prereq-group .prereq-group {
+  margin-top: 0.6rem;
+}
+
+.prereq-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.prereq-op {
+  width: auto;
+  font-weight: 700;
+}
+
+.prereq-leaf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--divider);
+}
+
+.prereq-leaf .form-field {
+  flex: 1 1 16rem;
+}
+
+.prereq-leaf .prereq-grade {
+  flex: 0 0 6.5rem;
+}
+
+.prereq-leaf .check-label {
+  height: 2.75rem;
+}
+
+.prereq-group .form-actions button {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .form-field.half,
+  .form-field.third {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ==========================================================================
    Motion
    ========================================================================== */
 

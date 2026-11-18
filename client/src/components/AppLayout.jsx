@@ -24,7 +24,7 @@ export default function AppLayout({ children }) {
           {APP_NAME}
         </span>
         <nav className="topnav" aria-label="Main">
-          {NAV.map((item) => (
+          {[...NAV, ...(session.role === 'admin' ? [{ to: '/admin', label: 'Admin' }] : [])].map((item) => (
             <NavLink key={item.to} to={item.to}>
               {item.label}
             </NavLink>

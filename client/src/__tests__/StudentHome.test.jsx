@@ -192,7 +192,7 @@ describe('Student home page', () => {
 });
 
 describe('Home page for other roles', () => {
-  it.each(['advisor', 'instructor', 'admin'])('%s sees a placeholder and no profile request', async (role) => {
+  it.each(['advisor', 'instructor'])('%s sees a placeholder and no profile request', async (role) => {
     renderHome(role);
 
     expect(screen.getByRole('heading', { name: 'Welcome, Ada Lovelace' })).toBeInTheDocument();

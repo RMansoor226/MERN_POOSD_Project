@@ -110,3 +110,18 @@ export const getAllSections = (params, token) => getAll('/sections', params, tok
 
 // Every course matching the filters (all pages).
 export const getAllCourses = (params, token) => getAll('/courses', params, token);
+
+// --- Admin: generic CRUD (reads: any logged-in user; writes: admin only) ---------
+// path is the collection path, e.g. '/departments'. Deletes that other records depend on
+// fail with 409 and a message such as "Term still has sections".
+
+export const listResource = (path, params, token) => request(`${path}${toQuery(params)}`, { token });
+export const getAllResource = (path, token) => getAll(path, {}, token);
+export const getResource = (path, id, token) => request(`${path}/${id}`, { token });
+export const createResource = (path, body, token) => request(path, { method: 'POST', body, token });
+export const updateResource = (path, id, body, token) =>
+  request(`${path}/${id}`, { method: 'PATCH', body, token });
+export const deleteResource = (path, id, token) => request(`${path}/${id}`, { method: 'DELETE', token });
+
+// GET /api/users (admin only) -> plain array, not paginated
+export const listUsers = (token) => request('/users', { token });
