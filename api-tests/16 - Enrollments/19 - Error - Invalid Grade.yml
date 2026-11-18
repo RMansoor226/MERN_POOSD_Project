@@ -1,0 +1,35 @@
+info:
+  name: Error - Invalid Grade
+  type: http
+  seq: 19
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/enrollments/{{enrOtherEnrollmentId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "grade": "Z"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("instructorToken"));
+    - type: tests
+      code: |-
+        test("responds 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+        test("names the grade field", function () {
+          expect(res.getBody().details.grade).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,6 +1,7 @@
 const { Section, Course, Term, Instructor, Enrollment } = require('../../models');
 const AppError = require('../utils/AppError');
 const { pick, assertRefs, blockIfUsed } = require('../utils/catalogHelpers');
+const { fillFromWaitlist } = require('../utils/seats');
 
 // enrolledCount and waitlistCount are never accepted from clients: the enrollment flow owns them
 const FIELDS = ['sectionNumber', 'crn', 'instructorIds', 'meetings', 'modality',
@@ -63,7 +64,10 @@ exports.updateSection = async (req, res) => {
 
     for (const [field, value] of Object.entries(body)) section.set(field, value);
 
-    const updated = await section.save();
+    await section.save();
+    // seats added by a capacity increase go to the waitlist, oldest first
+    await fillFromWaitlist(section._id);
+    const updated = await Section.findById(section._id);
     return res.status(200).json(updated);
 };
 

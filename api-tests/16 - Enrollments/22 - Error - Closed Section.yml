@@ -1,0 +1,32 @@
+info:
+  name: Error - Closed Section
+  type: http
+  seq: 22
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/enrollments"
+  body:
+    type: json
+    data: |-
+      {
+        "sectionId": "{{sectionPastId}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("otherStudentToken"));
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,33 @@
+info:
+  name: Student - Cannot Grade
+  type: http
+  seq: 17
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/enrollments/{{enrOtherEnrollmentId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "status": "completed",
+        "grade": "A"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("otherStudentToken"));
+    - type: tests
+      code: |-
+        test("responds 403", function () {
+          expect(res.getStatus()).to.equal(403);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

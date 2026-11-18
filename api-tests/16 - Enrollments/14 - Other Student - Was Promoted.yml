@@ -1,0 +1,30 @@
+info:
+  name: Other Student - Was Promoted
+  type: http
+  seq: 14
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/enrollments/{{enrOtherEnrollmentId}}"
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("otherStudentToken"));
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("moved from the waitlist into the freed seat", function () {
+          expect(res.getBody().status).to.equal("enrolled");
+          expect(res.getBody().enrolledAt).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

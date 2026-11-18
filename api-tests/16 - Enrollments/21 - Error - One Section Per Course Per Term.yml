@@ -1,0 +1,38 @@
+info:
+  name: Error - One Section Per Course Per Term
+  type: http
+  seq: 21
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/enrollments"
+  body:
+    type: json
+    data: |-
+      {
+        "sectionId": "{{sectionRamanId}}"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+        test("says which section they already hold", function () {
+          expect(res.getBody().error).to.contain("COP4331 section 0001");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  The seed waitlists metoo in COP4331 0001, so 0002 in the same term is refused.

@@ -1,0 +1,44 @@
+info:
+  name: Admin - Cleanup
+  type: http
+  seq: 31
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/sections/{{enrSectionId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const axios = require("axios");
+        const base = bru.getEnvVar("baseURL");
+        const headers = { Authorization: "Bearer " + bru.getVar("adminToken") };
+        // enrollments first: a section with enrollments cannot be deleted
+        for (const id of [bru.getVar("enrStudentEnrollmentId"), bru.getVar("enrOtherEnrollmentId")]) {
+          if (id) await axios.delete(base + "/api/enrollments/" + id, { headers }).catch(() => {});
+        }
+    - type: after-response
+      code: |-
+        const axios = require("axios");
+        const headers = { Authorization: "Bearer " + bru.getVar("adminToken") };
+        const base = bru.getEnvVar("baseURL");
+        await axios.delete(base + "/api/courses/" + bru.getVar("enrCourseId"), { headers }).catch(() => {});
+        // the prerequisite test's section and course (no enrollments were created for them)
+        await axios.delete(base + "/api/sections/" + bru.getVar("enrPrereqSectionId"), { headers }).catch(() => {});
+        await axios.delete(base + "/api/courses/" + bru.getVar("enrPrereqCourseId"), { headers }).catch(() => {});
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Deletes the enrollments from this run, then the test sections and courses.

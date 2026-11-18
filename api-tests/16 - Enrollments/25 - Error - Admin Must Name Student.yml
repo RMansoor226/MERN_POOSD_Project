@@ -1,0 +1,32 @@
+info:
+  name: Error - Admin Must Name Student
+  type: http
+  seq: 25
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/enrollments"
+  body:
+    type: json
+    data: |-
+      {
+        "sectionId": "{{enrSectionId}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400", function () {
+          expect(res.getStatus()).to.equal(400);
+        });
+        test("asks for studentId", function () {
+          expect(res.getBody().details.studentId).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
