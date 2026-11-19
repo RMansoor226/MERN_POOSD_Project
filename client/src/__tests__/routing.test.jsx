@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { renderApp, SESSION } from '../test/renderApp.jsx';
 
 vi.mock('../api.js', () => ({
+  getAllEnrollments: vi.fn().mockResolvedValue([]),
+  getProgram: vi.fn().mockRejectedValue(Object.assign(new Error('Program not found'), { status: 404 })),
   getTerms: vi.fn().mockResolvedValue([]),
   login: vi.fn(),
   register: vi.fn(),

@@ -1,6 +1,8 @@
 import { useAuth } from '../AuthContext.jsx';
 import { useCurrentUser } from '../hooks/useCurrentUser.js';
-import ComingSoonCard from '../components/ComingSoonCard.jsx';
+import * as api from '../api.js';
+import { useApi } from '../hooks/useApi.js';
+import { DegreeProgressCard, MyScheduleCard, WaitlistsCard } from '../components/EnrollmentCards.jsx';
 import ProfileCard from '../components/ProfileCard.jsx';
 import ProgramsCard from '../components/ProgramsCard.jsx';
 import RegistrationDatesCard from '../components/RegistrationDatesCard.jsx';
@@ -9,6 +11,8 @@ export default function StudentHome() {
   const { session } = useAuth();
   const { status, user, error, reload, setUser } = useCurrentUser();
   const name = [session.firstName, session.lastName].filter(Boolean).join(' ') || 'there';
+  // one request feeds the schedule, waitlist and degree progress cards
+  const enrollments = useApi((token) => api.getAllEnrollments({}, token), []);
 
   return (
     <>
@@ -34,22 +38,9 @@ export default function StudentHome() {
         )}
 
         <RegistrationDatesCard />
-
-        <ComingSoonCard
-          title="My Schedule"
-          description="Your enrolled classes for the current term will show here."
-          endpoint="GET /api/enrollments (my enrollments)"
-        />
-        <ComingSoonCard
-          title="Waitlists"
-          description="Your waitlist positions will show here."
-          endpoint="GET /api/enrollments (my enrollments)"
-        />
-        <ComingSoonCard
-          title="Degree Progress"
-          description="Completed and remaining requirements for your declared programs will show here."
-          endpoint="GET /api/enrollments (completed courses) for a degree audit"
-        />
+        <WaitlistsCard enrollments={enrollments} onChanged={enrollments.reload} />
+        <MyScheduleCard enrollments={enrollments} onChanged={enrollments.reload} />
+        {status === 'ready' && <DegreeProgressCard user={user} enrollments={enrollments} />}
       </div>
     </>
   );

@@ -8,6 +8,7 @@ import CourseDetail from './pages/CourseDetail.jsx';
 import ClassSearch from './pages/ClassSearch.jsx';
 import Programs from './pages/Programs.jsx';
 import ProgramDetail from './pages/ProgramDetail.jsx';
+import Roster from './pages/Roster.jsx';
 import AdminHome from './pages/admin/AdminHome.jsx';
 import AdminList from './pages/admin/AdminList.jsx';
 import AdminForm from './pages/admin/AdminForm.jsx';
@@ -41,6 +42,7 @@ export default function App() {
       <Route path="/classes" element={<RequireAuth><ClassSearch /></RequireAuth>} />
       <Route path="/programs" element={<RequireAuth><Programs /></RequireAuth>} />
       <Route path="/programs/:id" element={<RequireAuth><ProgramDetail /></RequireAuth>} />
+      <Route path="/teaching/:sectionId" element={<RequireAuth><Roster /></RequireAuth>} />
       <Route path="/admin" element={<RequireAdmin><AdminHome /></RequireAdmin>} />
       <Route path="/admin/:resource" element={<RequireAdmin><AdminList /></RequireAdmin>} />
       <Route path="/admin/:resource/new" element={<RequireAdmin><AdminForm /></RequireAdmin>} />
