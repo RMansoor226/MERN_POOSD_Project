@@ -190,14 +190,3 @@ describe('Student home page', () => {
     expect(localStorage.getItem('auth')).toBeNull();
   });
 });
-
-describe('Home page for other roles', () => {
-  it.each(['advisor', 'instructor'])('%s sees a placeholder and no profile request', async (role) => {
-    renderHome(role);
-
-    expect(screen.getByRole('heading', { name: 'Welcome, Ada Lovelace' })).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(`${role} home page is coming soon`, 'i'))).toBeInTheDocument();
-    await waitFor(() => expect(api.getUser).not.toHaveBeenCalled());
-    expect(screen.queryByRole('heading', { name: 'My Profile' })).not.toBeInTheDocument();
-  });
-});

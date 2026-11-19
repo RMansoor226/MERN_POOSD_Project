@@ -470,6 +470,23 @@ describe('Admin form', () => {
     );
   });
 
+  it('links an instructor to an instructor-role login', async () => {
+    api.listUsers.mockResolvedValue([
+      ...USERS,
+      { _id: 'u3', firstName: 'John', lastName: 'Aedo', login: 'jaedo', role: 'instructor', declarations: [] },
+    ]);
+    loginAs();
+    renderApp('/admin/instructors/i1');
+
+    const select = await screen.findByLabelText(/^Login account/);
+    // only instructor-role users are offered
+    expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['None', 'John Aedo']);
+    await userEvent.selectOptions(select, 'u3');
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    expect(api.updateResource).toHaveBeenCalledWith('/instructors', 'i1', expect.objectContaining({ userId: 'u3' }), TOKEN);
+  });
+
   it('cannot open a create form for users', async () => {
     loginAs();
     renderApp('/admin/users/new');

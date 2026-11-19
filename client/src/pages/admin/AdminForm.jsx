@@ -40,7 +40,11 @@ function Field({ field, value, onChange, error, options, editing, selfId }) {
       break;
     case 'select':
     case 'ref': {
-      const opts = field.type === 'ref' ? options[field.ref] ?? [] : field.options;
+      // refWhere narrows the choices (e.g. instructor-role users) but keeps the current value visible
+      const opts =
+        field.type === 'ref'
+          ? (options[field.ref] ?? []).filter((o) => !field.refWhere || o.value === value || field.refWhere(o.doc))
+          : field.options;
       input = (
         <select {...common} value={value} disabled={locked} onChange={(e) => onChange(e.target.value)}>
           <option value="">{field.required ? `Choose ${field.label.toLowerCase()}…` : 'None'}</option>
