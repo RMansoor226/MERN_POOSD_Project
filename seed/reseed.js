@@ -4,7 +4,7 @@
  *
  *   node seed/reseed.js
  *
- * Demo login: metoo / ucf123!
+ * Demo logins (password ucf123!): metoo (student), instructor1 (John Aedo), advisor1, admin1
  */
 require('dotenv').config();
 const mongoose = require('mongoose');
@@ -97,8 +97,14 @@ async function run() {
   });
   const s1 = await User.create({ firstName: 'Sam', lastName: 'One', login: 'student1', password: pw });
   const s2 = await User.create({ firstName: 'Sky', lastName: 'Two', login: 'student2', password: pw });
+  await User.create({ firstName: 'John', lastName: 'Instructor', login: 'instructor1', password: pw, role: 'instructor' });
   await User.create({ firstName: 'Ada', lastName: 'Advisor', login: 'advisor1', password: pw, role: 'advisor' });
   await User.create({ firstName: 'Root', lastName: 'Admin', login: 'admin1', password: pw, role: 'admin' });
+  // instructor login linked to John Aedo's instructor record (rosters, grading)
+  const instructor1 = await User.create({
+    firstName: 'John', lastName: 'Aedo', login: 'instructor1', password: pw, role: 'instructor'
+  });
+  await Instructor.updateOne({ _id: aedo._id }, { $set: { userId: instructor1._id } });
 
   // --- sections ---------------------------------------------------------
   let crn = 10000;

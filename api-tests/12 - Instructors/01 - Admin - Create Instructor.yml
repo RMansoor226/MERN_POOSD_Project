@@ -1,0 +1,46 @@
+info:
+  name: Admin - Create Instructor
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/instructors"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "Test",
+        "lastName": "Instructor{{runId}}",
+        "email": "Test{{runId}}@Example.EDU",
+        "title": "Lecturer",
+        "departmentId": "{{deptCsId}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("instructorId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("returns the new record with an _id", function () {
+          expect(res.getBody()._id).to.be.a("string");
+        });
+        test("fields round-trip and email is lowercased", function () {
+          const b = res.getBody();
+          expect(b.firstName).to.equal("Test");
+          expect(b.lastName).to.equal("Instructor" + bru.getVar("runId"));
+          expect(b.email).to.equal("test" + bru.getVar("runId") + "@example.edu");
+          expect(b.departmentId).to.equal(bru.getVar("deptCsId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

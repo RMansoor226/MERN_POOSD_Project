@@ -1,0 +1,61 @@
+info:
+  name: Capture Seed IDs And Run Id
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/ping"
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const axios = require("axios");
+        const base = bru.getEnvVar("baseURL");
+        const headers = { Authorization: "Bearer " + bru.getVar("adminToken") };
+        const items = async (path) => (await axios.get(base + path, { headers })).data.items;
+        const need = (v, what) => { if (!v) throw new Error("Seed record missing: " + what + " (run npm run reseed)"); return v._id; };
+
+        const depts = await items("/api/departments?limit=100");
+        bru.setVar("deptCsId", need(depts.find((d) => d.code === "CS"), "CS department"));
+        bru.setVar("deptMatId", need(depts.find((d) => d.code === "MAT"), "MAT department"));
+
+        const terms = await items("/api/terms?limit=100");
+        bru.setVar("termFutureId", need(terms.find((t) => t.name === "Spring 2027"), "Spring 2027"));
+        bru.setVar("termPastId", need(terms.find((t) => t.name === "Spring 2026"), "Spring 2026"));
+
+        const courses = await items("/api/courses?limit=100");
+        bru.setVar("courseCop3502Id", need(courses.find((c) => c.code === "COP3502"), "COP3502"));
+        bru.setVar("courseMac2311Id", need(courses.find((c) => c.code === "MAC2311"), "MAC2311"));
+        bru.setVar("courseCop4331Id", need(courses.find((c) => c.code === "COP4331"), "COP4331"));
+
+        const instructors = await items("/api/instructors?limit=100");
+        bru.setVar("instructorAedoId", need(instructors.find((i) => i.lastName === "Aedo"), "instructor Aedo"));
+
+        const sections = await items("/api/sections?limit=100");
+        bru.setVar("sectionFullId", need(sections.find((x) => x.courseId.code === "COP4331" && x.sectionNumber === "0001" && x.termId.name === "Spring 2027"), "COP4331 0001 Spring 2027"));
+
+        const programs = await items("/api/programs?limit=100");
+        bru.setVar("programCsMajorId", need(programs.find((p) => p.name === "Computer Science" && p.type === "major"), "CS major"));
+
+        // unique suffix so test records never collide between runs
+        bru.setVar("runId", String(Date.now()).slice(-7));
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("all seed ids and runId were captured", function () {
+          ["deptCsId", "deptMatId", "termFutureId", "termPastId", "courseCop3502Id", "courseMac2311Id", "courseCop4331Id", "instructorAedoId", "sectionFullId", "programCsMajorId", "runId"].forEach((k) => expect(bru.getVar(k), k).to.be.a("string"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Looks up the seeded records by name through the API and stores their ids as variables so no test hardcodes an ObjectId. Also sets runId, a unique suffix for created records.

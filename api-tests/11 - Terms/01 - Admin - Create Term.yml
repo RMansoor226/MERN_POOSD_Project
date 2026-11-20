@@ -1,0 +1,49 @@
+info:
+  name: Admin - Create Term
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/terms"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Test Term {{runId}}",
+        "year": 2040,
+        "season": "summer",
+        "startDate": "2040-05-01",
+        "endDate": "2040-08-01",
+        "registrationOpens": "2040-02-01",
+        "registrationCloses": "2040-05-10"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("termId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("returns the new record with an _id", function () {
+          expect(res.getBody()._id).to.be.a("string");
+        });
+        test("fields round-trip", function () {
+          const b = res.getBody();
+          expect(b.name).to.equal("Test Term " + bru.getVar("runId"));
+          expect(b.year).to.equal(2040);
+          expect(b.season).to.equal("summer");
+          expect(b.startDate.slice(0, 10)).to.equal("2040-05-01");
+          expect(b.registrationCloses.slice(0, 10)).to.equal("2040-05-10");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

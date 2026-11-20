@@ -1,0 +1,38 @@
+info:
+  name: Error - Update End Before Start
+  type: http
+  seq: 22
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/terms/{{termId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "endDate": "2000-01-01"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("endDate");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  The model hook validates the merged document, so a partial update cannot break the date order.

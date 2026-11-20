@@ -1,0 +1,69 @@
+info:
+  name: Admin - Create Course
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/courses"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "tst",
+        "number": "{{runId}}",
+        "title": "Test Course {{runId}}",
+        "credits": 3,
+        "description": "Created by the API tests",
+        "departmentId": "{{deptCsId}}",
+        "attributes": [
+          "GenEd-Test"
+        ],
+        "prereqs": {
+          "op": "OR",
+          "items": [
+            {
+              "courseId": "{{courseCop3502Id}}",
+              "minGrade": "C"
+            },
+            {
+              "courseId": "{{courseMac2311Id}}",
+              "concurrentOk": true
+            }
+          ]
+        },
+        "coreqs": [],
+        "prereqText": "Test standing"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("courseId", res.getBody()._id);
+    - type: tests
+      code: |-
+        test("responds 201", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+        test("returns the new record with an _id", function () {
+          expect(res.getBody()._id).to.be.a("string");
+        });
+        test("subject is uppercased and code is derived", function () {
+          expect(res.getBody().subject).to.equal("TST");
+          expect(res.getBody().code).to.equal("TST" + bru.getVar("runId"));
+        });
+        test("prereq tree is stored intact", function () {
+          const p = res.getBody().prereqs;
+          expect(p.op).to.equal("OR");
+          expect(p.items).to.have.length(2);
+          expect(p.items[0].minGrade).to.equal("C");
+          expect(p.items[1].concurrentOk).to.equal(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

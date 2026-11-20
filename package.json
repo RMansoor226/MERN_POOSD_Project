@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node api/server.js",
     "dev": "nodemon -L api/server.js",
-    "reseed": "node seed/reseed.js"
+    "reseed": "node seed/reseed.js",
+    "test": "node --test \"api/tests/*.test.js\""
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -1,0 +1,28 @@
+info:
+  name: Admin - List Filter By Subject
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/courses?subject=tst"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("subject filter is case-insensitive and exact", function () {
+          const items = res.getBody().items;
+          expect(items.length).to.be.at.least(1);
+          items.forEach((x) => expect(x.subject).to.equal("TST"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

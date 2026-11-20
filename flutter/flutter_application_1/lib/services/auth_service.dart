@@ -1,17 +1,19 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
-  static const _baseUrl = 'http://10.0.2.2:5000';
+  static String get _baseUrl => dotenv.get('BASE_URL');
   static const _storage = FlutterSecureStorage();
 
   Future<http.Response> updateUser(
     String id, {
-    required String firstName,
-    required String lastName,
+    String? firstName,
+    String? lastName,
     String? email,
+    List<dynamic>? declaredPrograms,
   }) async {
     final token = await _storage.read(key: 'token');
 
@@ -23,11 +25,6 @@ class AuthService {
       '$_baseUrl/api/users/${Uri.encodeComponent(id)}',
     );
 
-    debugPrint(id);
-    debugPrint(firstName);
-    debugPrint(lastName);
-    debugPrint(email);
-
     return http.patch(
       uri,
       headers: {
@@ -36,9 +33,10 @@ class AuthService {
         'Accept': 'application/json',
       },
       body: jsonEncode({
-        'email': email,
-        'firstName': firstName,
-        'lastName': lastName,
+        if (firstName != null) 'firstName': firstName,
+        if (lastName != null) 'lastName': lastName,
+        if (email != null) 'email': email,
+        if (declaredPrograms != null) 'declarations': declaredPrograms,
       })
     );
   }

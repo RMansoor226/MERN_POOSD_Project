@@ -1,0 +1,26 @@
+info:
+  name: Admin - Delete Course
+  type: http
+  seq: 48
+
+http:
+  method: DELETE
+  url: "{{baseURL}}/api/courses/{{courseId}}"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("returns the deleted record", function () {
+          expect(res.getBody()._id).to.equal(bru.getVar("courseId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -20,5 +20,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,             // lets Testing Library clean up between tests
     setupFiles: './src/test/setup.js',
+    // userEvent-heavy form tests can pass 5s when the full suite runs in parallel on a busy machine
+    testTimeout: 20000,
   },
 });

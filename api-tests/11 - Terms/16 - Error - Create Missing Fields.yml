@@ -1,0 +1,39 @@
+info:
+  name: Error - Create Missing Fields
+  type: http
+  seq: 16
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/terms"
+  body:
+    type: json
+    data: |-
+      {}
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("name");
+          expect(d).to.have.property("year");
+          expect(d).to.have.property("season");
+          expect(d).to.have.property("startDate");
+          expect(d).to.have.property("endDate");
+          expect(d).to.have.property("registrationOpens");
+          expect(d).to.have.property("registrationCloses");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

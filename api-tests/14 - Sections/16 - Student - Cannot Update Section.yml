@@ -1,0 +1,31 @@
+info:
+  name: Student - Cannot Update Section
+  type: http
+  seq: 16
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/sections/{{sectionId}}"
+  body:
+    type: json
+    data: |-
+      {}
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 403 Insufficient permissions", function () {
+          expect(res.getStatus()).to.equal(403);
+          expect(res.getBody().error).to.equal("Insufficient permissions");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

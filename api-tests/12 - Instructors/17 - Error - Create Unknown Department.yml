@@ -1,0 +1,45 @@
+info:
+  name: Error - Create Unknown Department
+  type: http
+  seq: 17
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/instructors"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "Test",
+        "lastName": "Instructor{{runId}}",
+        "email": "Test{{runId}}@Example.EDU",
+        "title": "Lecturer",
+        "departmentId": "000000000000000000000001"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("departmentId");
+        });
+        test("details.departmentId explains the failure", function () {
+          expect(res.getBody().details["departmentId"]).to.equal("references a record that does not exist");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Well-formed ObjectId that matches no department; caught by the reference check.

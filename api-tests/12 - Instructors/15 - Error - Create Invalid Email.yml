@@ -1,0 +1,39 @@
+info:
+  name: Error - Create Invalid Email
+  type: http
+  seq: 15
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/instructors"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "Test",
+        "lastName": "Instructor{{runId}}",
+        "email": "not-an-email",
+        "title": "Lecturer",
+        "departmentId": "{{deptCsId}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("email");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

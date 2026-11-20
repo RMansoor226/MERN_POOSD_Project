@@ -1,0 +1,30 @@
+info:
+  name: Error - Update Not Found
+  type: http
+  seq: 31
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/terms/000000000000000000000000"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Whatever"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 404 Term not found with that ID", function () {
+          expect(res.getStatus()).to.equal(404);
+          expect(res.getBody().error).to.equal("Term not found with that ID");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

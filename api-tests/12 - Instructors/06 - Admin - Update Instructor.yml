@@ -1,0 +1,34 @@
+info:
+  name: Admin - Update Instructor
+  type: http
+  seq: 6
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/instructors/{{instructorId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "title": "Senior Lecturer",
+        "departmentId": "{{deptMatId}}"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("fields changed", function () {
+          expect(res.getBody().title).to.equal("Senior Lecturer");
+          expect(res.getBody().departmentId).to.equal(bru.getVar("deptMatId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

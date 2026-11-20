@@ -1,0 +1,31 @@
+info:
+  name: Student - List Own Enrollments
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: "{{baseURL}}/api/enrollments?limit=100"
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 200", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("only the student's own enrollments, including the new one", function () {
+          const items = res.getBody().items;
+          items.forEach((e) => expect(e.studentId._id).to.equal(bru.getVar("seedUserId")));
+          expect(items.map((e) => e._id)).to.include(bru.getVar("enrStudentEnrollmentId"));
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

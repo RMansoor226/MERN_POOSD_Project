@@ -1,0 +1,49 @@
+info:
+  name: Error - Create Empty Prereq Group
+  type: http
+  seq: 27
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/courses"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "tst",
+        "number": "{{runId}}8",
+        "title": "Test Course {{runId}}",
+        "credits": 3,
+        "description": "Created by the API tests",
+        "departmentId": "{{deptCsId}}",
+        "attributes": [
+          "GenEd-Test"
+        ],
+        "prereqs": {
+          "op": "AND",
+          "items": []
+        },
+        "coreqs": [],
+        "prereqText": "Test standing"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details has a prereqs* entry", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(Object.keys(d).some((k) => k.startsWith("prereqs"))).to.equal(true);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

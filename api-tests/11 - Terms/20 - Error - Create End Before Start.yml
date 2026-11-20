@@ -1,0 +1,47 @@
+info:
+  name: Error - Create End Before Start
+  type: http
+  seq: 20
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/terms"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Bad Dates {{runId}}",
+        "year": 2040,
+        "season": "summer",
+        "startDate": "2040-05-01",
+        "endDate": "2040-04-01",
+        "registrationOpens": "2040-02-01",
+        "registrationCloses": "2040-05-10"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("endDate");
+        });
+        test("details.endDate explains the failure", function () {
+          expect(res.getBody().details["endDate"]).to.equal("endDate must be after startDate");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Passes zod, then fails the model pre-validate hook (mapped to 400 by errorHandler).

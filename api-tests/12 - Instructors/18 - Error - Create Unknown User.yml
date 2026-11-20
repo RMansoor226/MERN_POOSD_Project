@@ -1,0 +1,43 @@
+info:
+  name: Error - Create Unknown User
+  type: http
+  seq: 18
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/instructors"
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "Test",
+        "lastName": "Instructor{{runId}}",
+        "email": "Test{{runId}}@Example.EDU",
+        "title": "Lecturer",
+        "departmentId": "{{deptCsId}}",
+        "userId": "000000000000000000000001"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("userId");
+        });
+        test("details.userId explains the failure", function () {
+          expect(res.getBody().details["userId"]).to.equal("references a record that does not exist");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

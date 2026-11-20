@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import * as api from '../api.js';
 import { useAuth } from '../AuthContext.jsx';
 
-// Loads the program catalog from GET /api/programs.
+// Loads the full program catalog from GET /api/programs (all pages).
 // status: 'loading' | 'ready' | 'unavailable'
-// "unavailable" covers the endpoint not existing yet (404) or any other failure,
-// so the UI can degrade gracefully until the backend adds it.
+// "unavailable" covers any failure (server down, error response),
+// so the UI can degrade gracefully.
 export function usePrograms() {
   const { session, signOut } = useAuth();
   const [state, setState] = useState({ status: 'loading', programs: [] });

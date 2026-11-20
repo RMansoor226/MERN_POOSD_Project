@@ -1,0 +1,41 @@
+info:
+  name: Error - Create Year Out Of Range
+  type: http
+  seq: 17
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/terms"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Bad Year {{runId}}",
+        "year": 1999,
+        "season": "summer",
+        "startDate": "2040-05-01",
+        "endDate": "2040-08-01",
+        "registrationOpens": "2040-02-01",
+        "registrationCloses": "2040-05-10"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("year");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

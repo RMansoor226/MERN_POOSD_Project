@@ -1,0 +1,35 @@
+info:
+  name: Error - Drop Twice
+  type: http
+  seq: 16
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/enrollments/{{enrStudentEnrollmentId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "status": "dropped"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        req.setHeader("Authorization", "Bearer " + bru.getVar("studentToken"));
+    - type: tests
+      code: |-
+        test("responds 409", function () {
+          expect(res.getStatus()).to.equal(409);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  A second drop must not release a second seat.

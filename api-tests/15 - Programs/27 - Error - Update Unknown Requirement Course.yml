@@ -1,0 +1,43 @@
+info:
+  name: Error - Update Unknown Requirement Course
+  type: http
+  seq: 27
+
+http:
+  method: PATCH
+  url: "{{baseURL}}/api/programs/{{programId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "requirements": [
+          {
+            "name": "X",
+            "rule": "all",
+            "courseIds": [
+              "000000000000000000000001"
+            ]
+          }
+        ]
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("responds 400 Validation Failed", function () {
+          expect(res.getStatus()).to.equal(400);
+          expect(res.getBody().error).to.equal("Validation Failed");
+        });
+        test("details name the failing field(s)", function () {
+          const d = res.getBody().details;
+          expect(d).to.be.an("object");
+          expect(d).to.have.property("requirements");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,38 @@
+info:
+  name: Login Admin
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseURL}}/api/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "login": "admin1",
+        "password": "ucf123!"
+      }
+  auth: none
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        bru.setVar("adminToken", res.getBody().token);
+    - type: tests
+      code: |-
+        test("returns a JWT and the admin role", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().token.split(".")).to.have.length(3);
+          expect(res.getBody().role).to.equal("admin");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Sets adminToken, which every `auth: inherit` request uses. Run `npm run reseed` before the first run.
