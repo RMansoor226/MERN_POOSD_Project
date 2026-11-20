@@ -45,11 +45,13 @@ class _HomePageState extends State<HomePage> {
 
   // enrollment information
   List<dynamic> enrollments = [];
+  List<dynamic> waitlists = [];
 
   @override
   void initState() {
     super.initState();
     loadTerms();
+    getLatestTerm();
     loadUser(widget.userId);
   }
 
@@ -165,17 +167,25 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   Future<void> loadEnrollments() async {
     try {
-      final response = await enrollmentService.getTerms();
+      final response = await enrollmentService.getEnrollment();
 
       if (response.statusCode >= 200 || response.statusCode < 300) {
         final enrollmentsData = jsonDecode(response.body);
-        
-        debugPrint(enrollmentsData.toString());
+        waitlists = [];
 
-        // enrollments = enrollmentsData['items'] as List;?
+        enrollments = enrollmentsData['items'] as List;
+
+        // get waitlists
+        for (int i = 0; i < enrollments.length; i++) {
+          final tmp = enrollments[i];
+          
+          if (tmp['status'] == 'waitlisted') {
+            waitlists.add(tmp);
+            debugPrint('1111111111111111111111111111111111111111111 ${tmp.toString()}');
+          }
+        }
       } else {
         debugPrint('Request failed: ${response.statusCode} ${response.body}');
       }
@@ -705,7 +715,7 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm['registrationOpens']))} - ${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm['registrationCloses']))}',
+                                '${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm?['registrationOpens'] ?? DateTime.now()))} - ${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm?['registrationCloses'] ?? DateTime.now()))}',
                                 style: TextStyle(fontSize: 16, color: theme.colorScheme.tertiary)
                               ),
                               Text(
@@ -773,10 +783,109 @@ class _HomePageState extends State<HomePage> {
                         'Waitlists',
                         style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                      // ElevatedButton(
-                      //   onPressed: () {}, 
-                      //   child: Text('amongus')
-                      // ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: waitlists.length,
+                        itemBuilder: (context, index) {
+                          final enrolls = waitlists[index];
+                          final sectionNum = enrolls['sectionId']['sectionNumber'];
+                          final courseCode = enrolls['courseId']['code'];
+                          final termName = enrolls['termId']['name'];
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border(
+                                left: BorderSide(
+                                  color: theme.colorScheme.primary,
+                                  width: 4
+                                ),
+                              )
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded( child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(courseCode?.toString() ?? 'Unnamed program',
+                                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                                  textAlign: TextAlign.left,
+                                  ),
+                                  Text('Section ${sectionNum?.toString() ?? 'Unnamed program'} - ${termName?.toString() ?? 'Unnamed program'}' ,
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                  textAlign: TextAlign.left,
+                                  ),
+                                ],
+                                )),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final confirmed = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        backgroundColor: theme.colorScheme.primaryContainer,
+                                        title: Text('Exit waitlist?', style: TextStyle(color: theme.colorScheme.secondary)),
+                                        content: Text('Are you sure you want to exit waitlist?', style: TextStyle(color: theme.colorScheme.secondary)),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(true),
+                                            child: const Text('Remove'),
+                                          ),
+                                        ],
+                                      )
+                                    );
+                                    if (confirmed == true) {
+                                      // api function
+                                      try {
+                                        final response = await enrollmentService.dropEnrollment(
+                                          enrolls['_id'].toString()
+                                        );
+                                        if (!context.mounted) return;
+
+                                        // remove program from list
+                                        setState(() {
+                                          waitlists.removeAt(index);
+                                        });
+
+                                        debugPrint(response.body);
+
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Could not connect to the server')),
+                                          );
+                                          debugPrint(e.toString());
+                                      }
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    foregroundColor: theme.colorScheme.secondary,
+                                    shape: const CircleBorder(),
+                                    padding: EdgeInsets.zero,
+                                    fixedSize: const Size(40, 40),
+                                  ),
+                                  child: const Icon(Icons.delete),
+                                ),
+                              ],
+                            ), 
+                          );
+                        },
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          loadEnrollments();
+                          debugPrint(enrollments.toString());
+                        }, 
+                        child: Text('amongus')
+                      ),
                     ],
                   )
                 ),
