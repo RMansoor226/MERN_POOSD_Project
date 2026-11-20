@@ -707,7 +707,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: ListTile(
                           title: Text(
-                            '${latestTerm?['name']}',
+                            '${latestTerm?['name'] ?? 'Loading...'}',
                             textAlign: TextAlign.left,
                             style: TextStyle(fontSize: 20, color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)
                           ),
@@ -715,11 +715,12 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm?['registrationOpens'] ?? DateTime.now()))} - ${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm?['registrationCloses'] ?? DateTime.now()))}',
+                                '${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm?['registrationOpens'] ?? DateTime.now().toIso8601String()))} -'
+                                ' ${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm?['registrationCloses'] ?? DateTime.now().toIso8601String()))}',
                                 style: TextStyle(fontSize: 16, color: theme.colorScheme.tertiary)
                               ),
                               Text(
-                                'Closes in ${latestTerm?['registrationCloses'] == null ? 'null' : DateTime.parse(latestTerm['registrationCloses']).difference(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)).inDays} Days',
+                                'Closes in ${DateTime.parse(latestTerm?['registrationCloses'] ?? DateTime.now().toIso8601String()).difference(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)).inDays} Days',
                                 // '${latestTerm?['registrationCloses'] == null ? 'null' : DateTime.parse(latestTerm['registrationCloses'].toString())}',
                                 style: TextStyle(fontSize: 16, color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)
                               ),
@@ -737,7 +738,7 @@ class _HomePageState extends State<HomePage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      'Browse ${latestTerm['name']} classes',
+                                      'Browse ${latestTerm?['name'] ?? 'Unknown'} classes',
                                       style: TextStyle(fontSize: 16, color: theme.colorScheme.secondary, fontWeight: FontWeight.bold,
                                       decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1)
                                       )
