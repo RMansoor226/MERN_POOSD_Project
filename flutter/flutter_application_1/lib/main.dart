@@ -34,9 +34,10 @@ class MyApp extends StatelessWidget {
           surface: const Color.fromARGB(255, 0, 0, 0),
           primaryContainer: const Color(0xFF12121c),
           secondaryContainer: const Color(0xff1a1a22),
+          tertiaryContainer: const Color(0xFF63e394),
           primary: const Color.fromARGB(169, 255, 201, 4),
           secondary: const Color(0xFFFFFFFF),
-          tertiary: const Color.fromARGB(255, 176, 176, 176)
+          tertiary: const Color.fromARGB(255, 176, 176, 176),
         ),
         scaffoldBackgroundColor: const Color.fromARGB(255, 16, 16, 16),
       ),

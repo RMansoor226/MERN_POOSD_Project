@@ -7,6 +7,7 @@ import AppLayout from '../components/AppLayout.jsx';
 import LoadError from '../components/LoadError.jsx';
 import Pagination from '../components/Pagination.jsx';
 import SectionTable from '../components/SectionTable.jsx';
+import { useRegistration } from '../components/Registration.jsx';
 
 export const SECTIONS_PER_PAGE = 25;
 
@@ -51,6 +52,8 @@ export default function ClassSearch() {
       : null,
     [termId, course, status, modality, page]
   );
+
+  const registration = useRegistration(() => results.reload());
 
   const update = (changes) =>
     setParams(cleanParams({ term: params.get('term') ?? '', course, status, modality, page: '', ...changes }));
@@ -129,6 +132,7 @@ export default function ClassSearch() {
         </>
       )}
 
+      {registration.banner}
       {results.status === 'error' && <LoadError message={results.error} onRetry={results.reload} />}
       {results.status === 'loading' && !data && <p role="status">Searching…</p>}
 
@@ -147,7 +151,13 @@ export default function ClassSearch() {
           {data.items.length === 0 ? (
             <p className="card">No sections match these filters.</p>
           ) : (
-            <SectionTable sections={data.items} showCourse caption={`Sections for ${term?.name ?? 'the selected term'}`} />
+            <SectionTable
+              sections={data.items}
+              showCourse
+              caption={`Sections for ${term?.name ?? 'the selected term'}`}
+              action={registration.action && ((s) => registration.action(s, term))}
+              actionLabel="Register"
+            />
           )}
           <Pagination
             page={data.page}

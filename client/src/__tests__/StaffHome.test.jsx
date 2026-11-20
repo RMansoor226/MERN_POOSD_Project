@@ -69,7 +69,7 @@ describe('Instructor home', () => {
 
     expect(api.getAllSections).toHaveBeenCalledWith({ instructorId: 'i1' }, TOKEN);
     expect(await screen.findByRole('heading', { name: 'My Profile' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Class Rosters' })).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: 'Roster for COP4331 section 0001' })).toHaveAttribute('href', '/teaching/s1');
   });
 
   it('explains how to get linked when no instructor record points at this login', async () => {

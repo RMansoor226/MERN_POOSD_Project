@@ -1,10 +1,13 @@
 import 'package:flutter_application_1/pages/login_page.dart';
+import 'package:flutter_application_1/services/enrollment_service.dart';
+import 'package:flutter_application_1/services/term_service.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import '../services/auth_service.dart';
 import '../services/program_service.dart';
+import '../services/enrollment_service.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -20,21 +23,33 @@ class _HomePageState extends State<HomePage> {
   final _formKey = GlobalKey<FormState>();
   final authService = AuthService();
   final programService = ProgramService();
+  final termService = TermService();
+  final enrollmentService = EnrollmentService();
 
   String? userText;
 
+  // user information
   String? firstName;
   String? lastName;
   String? login;
   String? email;
   String? role;
 
+  // program information
   List<dynamic> declaredPrograms = [];
   List<dynamic> otherPrograms = [];
+
+  // term information
+  List<dynamic> terms = [];
+  dynamic latestTerm;
+
+  // enrollment information
+  List<dynamic> enrollments = [];
 
   @override
   void initState() {
     super.initState();
+    loadTerms();
     loadUser(widget.userId);
   }
 
@@ -58,14 +73,14 @@ class _HomePageState extends State<HomePage> {
         firstName = userData['firstName'] as String? ?? '';
         lastName = userData['lastName'] as String? ?? '';
         final name = '$firstName $lastName'.trim();
-        email = userData['email'] ?? 'Not available';
+        email = userData['email'] ?? 'Not provided';
         login = userData['login'];
         role = userData['role'];
 
         declaredPrograms = userData['declarations'];
         setState(() {
           userText =
-              'Name: ${name} \nLogin: ${userData['login']} \nEmail: ${email ?? 'Not available'} \nRole: ${userData['role']}';
+              'Name: ${name} \nLogin: ${userData['login']} \nEmail: ${email ?? 'Not provided'} \nRole: ${userData['role']}';
         });
 
       } else {
@@ -85,7 +100,7 @@ class _HomePageState extends State<HomePage> {
 
         final programData = jsonDecode(response.body);
         
-        final allPrograms = programData is List ? programData : programData['items'] as List;        
+        final allPrograms = programData['items'] as List;        
         
         // remove classes if needed
         if (!all) {
@@ -113,6 +128,62 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> loadTerms() async {
+    try {
+      final response = await termService.getTerms();
+
+      if (response.statusCode >= 200 || response.statusCode < 300) {
+        final termData = jsonDecode(response.body);
+        
+        terms = termData['items'] as List;
+
+        getLatestTerm();
+      } else {
+        debugPrint('Request failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Could not load user: $e');
+    }
+  }
+
+  Future<dynamic> getLatestTerm() async {
+    final today = DateTime.now();
+
+    for (int i = 0; i < terms.length; i++) {
+      final term = terms[i];
+
+      final start = DateTime.parse(term['registrationOpens']);
+      final end = DateTime.parse(term['registrationCloses']);
+
+      // get the date that is in range
+      final inRange = !today.isBefore(start) && !today.isAfter(end); // make sure it counts midnight
+
+      if (inRange) latestTerm = term;
+    }
+    if (!terms.contains(latestTerm)) {
+      debugPrint("No terms right now");
+    }
+  }
+
+
+  Future<void> loadEnrollments() async {
+    try {
+      final response = await enrollmentService.getTerms();
+
+      if (response.statusCode >= 200 || response.statusCode < 300) {
+        final enrollmentsData = jsonDecode(response.body);
+        
+        debugPrint(enrollmentsData.toString());
+
+        // enrollments = enrollmentsData['items'] as List;?
+      } else {
+        debugPrint('Request failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Could not load user: $e');
+    }
+  }
+
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
@@ -121,6 +192,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: theme.colorScheme.primaryContainer,
@@ -189,7 +261,7 @@ class _HomePageState extends State<HomePage> {
                     border: Border(
                       top: BorderSide(
                         color: theme.colorScheme.primary,
-                        width: 2
+                        width: 4
                       )
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -324,7 +396,7 @@ class _HomePageState extends State<HomePage> {
                     border: Border(
                       top: BorderSide(
                         color: theme.colorScheme.primary,
-                        width: 2
+                        width: 4
                       )
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -352,113 +424,118 @@ class _HomePageState extends State<HomePage> {
                         itemBuilder: (context, index) {
                           final declaration = declaredPrograms[index];
                           final programId = declaration['programId'] as String;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: 
+                              FutureBuilder(
+                              future: programService.getProgram(programId),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
 
-                          return FutureBuilder(
-                            future: programService.getProgram(programId),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const CircularProgressIndicator();
-                              }
+                                if (snapshot.hasError) {
+                                  return Text('Could not load program: ${snapshot.error}');
+                                }
 
-                              if (snapshot.hasError) {
-                                return Text('Could not load program: ${snapshot.error}');
-                              }
+                                final response = snapshot.data!;
+                                if (response.statusCode < 200 || response.statusCode >= 300) {
+                                  return Text('Request failed: ${response.statusCode}');
+                                }
 
-                              final response = snapshot.data!;
-                              if (response.statusCode < 200 || response.statusCode >= 300) {
-                                return Text('Request failed: ${response.statusCode}');
-                              }
+                                final program = jsonDecode(response.body) as Map<String, dynamic>;
 
-                              final program = jsonDecode(response.body) as Map<String, dynamic>;
+                                // deal with handling date
+                                final date = DateTime.parse(program['createdAt']);
+                                final month = DateFormat('MMM d, yyyy').format(date);
 
-                              // deal with handling date
-                              final date = DateTime.parse(program['createdAt']);
-                              final month = DateFormat('MMM d, yyyy').format(date);
-
-                              return Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primaryContainer,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: theme.colorScheme.primary,
-                                    width: 2
-                                  )
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded( child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(program['name']?.toString() ?? 'Unnamed program',
-                                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
-                                      textAlign: TextAlign.left,
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border(
+                                      left: BorderSide(
+                                        color: theme.colorScheme.primary,
+                                        width: 4
                                       ),
-                                      Text('Catalog ${program['catalogYear']?.toString()} since ${month}' ?? 'Unnamed program',
-                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
-                                      textAlign: TextAlign.left,
+                                    )
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded( child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(program['name']?.toString() ?? 'Unnamed program',
+                                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                                        textAlign: TextAlign.left,
+                                        ),
+                                        Text('Catalog ${program['catalogYear']?.toString()} since ${month}' ?? 'Unnamed program',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                        textAlign: TextAlign.left,
+                                        ),
+                                      ],
+                                      )),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              backgroundColor: theme.colorScheme.primaryContainer,
+                                              title: Text('Delete program?', style: TextStyle(color: theme.colorScheme.secondary)),
+                                              content: Text('Are you sure you want to delete this program?', style: TextStyle(color: theme.colorScheme.secondary)),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.of(context).pop(false),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () => Navigator.of(context).pop(true),
+                                                  child: const Text('Delete'),
+                                                ),
+                                              ],
+                                            )
+                                          );
+                                          if (confirmed == true) {
+                                            debugPrint(programId);
+                                            debugPrint(index.toString());
+                                            // remove program from list
+                                            setState(() {
+                                              declaredPrograms.removeAt(index);
+                                            });
+
+                                            // api function
+                                            try {
+                                              final response = await authService.updateUser(
+                                                widget.userId,
+                                                declaredPrograms: declaredPrograms 
+                                              );
+                                              if (!context.mounted) return;
+
+                                            } catch (e) {
+                                              if (!context.mounted) return;
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('Could not connect to the server')),
+                                                );
+                                                debugPrint(e.toString());
+                                            }
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: theme.colorScheme.primary,
+                                          foregroundColor: theme.colorScheme.secondary,
+                                          shape: const CircleBorder(),
+                                          padding: EdgeInsets.zero,
+                                          fixedSize: const Size(40, 40),
+                                        ),
+                                        child: const Icon(Icons.delete),
                                       ),
                                     ],
-                                    )),
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        final confirmed = await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            backgroundColor: theme.colorScheme.primaryContainer,
-                                            title: Text('Delete program?', style: TextStyle(color: theme.colorScheme.secondary)),
-                                            content: Text('Are you sure you want to delete this program?', style: TextStyle(color: theme.colorScheme.secondary)),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.of(context).pop(false),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () => Navigator.of(context).pop(true),
-                                                child: const Text('Delete'),
-                                              ),
-                                            ],
-                                          )
-                                        );
-                                        if (confirmed == true) {
-                                          debugPrint(programId);
-                                          debugPrint(index.toString());
-                                          // remove program from list
-                                          setState(() {
-                                            declaredPrograms.removeAt(index);
-                                          });
-
-                                          // api function
-                                          try {
-                                            final response = await authService.updateUser(
-                                              widget.userId,
-                                              declaredPrograms: declaredPrograms 
-                                            );
-                                            if (!context.mounted) return;
-
-                                          } catch (e) {
-                                            if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text('Could not connect to the server')),
-                                              );
-                                              debugPrint(e.toString());
-                                          }
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: theme.colorScheme.primary,
-                                        foregroundColor: theme.colorScheme.secondary,
-                                        shape: const CircleBorder(),
-                                        padding: EdgeInsets.zero,
-                                        fixedSize: const Size(40, 40),
-                                      ),
-                                      child: const Icon(Icons.delete),
-                                    ),
-                                  ],
-                                ), 
-                              );
-                            },
+                                  ), 
+                                );
+                              },
+                            ),
                           );
                         },
                       ),
@@ -485,7 +562,7 @@ class _HomePageState extends State<HomePage> {
                                           borderRadius: BorderRadius.circular(16),
                                           side: BorderSide(
                                             color: theme.colorScheme.primary,
-                                            width: 2,
+                                            width: 4,
                                           ),
                                         ),
                                         title: Text('Choose a program', style: TextStyle(color: theme.colorScheme.secondary)),
@@ -503,7 +580,7 @@ class _HomePageState extends State<HomePage> {
                                                   borderRadius: BorderRadius.circular(16),
                                                   side: BorderSide(
                                                     color: theme.colorScheme.primary,
-                                                    width: 2,
+                                                    width: 4,
                                                   ),
                                                 ),
                                                 title: Text(
@@ -585,7 +662,7 @@ class _HomePageState extends State<HomePage> {
                     border: Border(
                       top: BorderSide(
                         color: theme.colorScheme.primary,
-                        width: 2
+                        width: 4
                       )
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -605,20 +682,171 @@ class _HomePageState extends State<HomePage> {
                         textAlign: TextAlign.left,
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
                       ),
-                      Text(
-                        "Registration Dates",
-                        textAlign: TextAlign.left,
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
-                      ),
-                      Text(
-                        "Registration Dates",
-                        textAlign: TextAlign.left,
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border(
+                            left: BorderSide(
+                              color: theme.colorScheme.tertiaryContainer,
+                              width: 4
+                            ),
+                          )
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            '${latestTerm?['name']}',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(fontSize: 20, color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm['registrationOpens']))} - ${DateFormat('MMM d, yyyy').format(DateTime.parse(latestTerm['registrationCloses']))}',
+                                style: TextStyle(fontSize: 16, color: theme.colorScheme.tertiary)
+                              ),
+                              Text(
+                                'Closes in ${latestTerm?['registrationCloses'] == null ? 'null' : DateTime.parse(latestTerm['registrationCloses']).difference(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)).inDays} Days',
+                                // '${latestTerm?['registrationCloses'] == null ? 'null' : DateTime.parse(latestTerm['registrationCloses'].toString())}',
+                                style: TextStyle(fontSize: 16, color: theme.colorScheme.secondary, fontWeight: FontWeight.bold)
+                              ),
+                               TextButton(
+                                onPressed: () {
+                                  debugPrint(getLatestTerm().toString());
+                                }, // add function later!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                style: TextButton.styleFrom(
+                                  alignment: Alignment.centerLeft,
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Browse ${latestTerm['name']} classes',
+                                      style: TextStyle(fontSize: 16, color: theme.colorScheme.secondary, fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1)
+                                      )
+                                    ),
+                                    Icon(Icons.arrow_forward, size: 16, color: theme.colorScheme.secondary),
+                                  ],
+                                ),
+                              ),
+                                                      ],
+                          )
+                        )
                       ),
                     ],
                   ),
                 ),
-              )
+              ),
+              Container(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  width: 360,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 4
+                      )
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Waitlists',
+                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      // ElevatedButton(
+                      //   onPressed: () {}, 
+                      //   child: Text('amongus')
+                      // ),
+                    ],
+                  )
+                ),
+              ), 
+              Container(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  width: 360,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 4
+                      )
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'My Schedule',
+                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  )
+                ),
+              ), 
+              Container(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  width: 360,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 4
+                      )
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Degree Progress',
+                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  )
+                ),
+              ), 
             ],
           )
         )

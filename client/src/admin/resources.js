@@ -1,3 +1,5 @@
+import { createElement } from 'react';
+import { Link } from 'react-router-dom';
 import { formatDate, instructorName, MODALITY_LABELS } from '../format.js';
 
 // One entry per admin-managed collection. The generic list and form pages read these.
@@ -156,6 +158,8 @@ export const RESOURCES = {
       { label: 'Term', render: (s) => name(s.termId) },
       { label: 'Seats', render: (s) => `${s.enrolledCount ?? 0}/${s.capacity}` },
       { label: 'Status', render: (s) => s.status },
+      // plain .js file, so createElement instead of JSX
+      { label: 'Roster', render: (s) => createElement(Link, { to: `/teaching/${s._id}` }, 'Roster') },
     ],
     fields: [
       {

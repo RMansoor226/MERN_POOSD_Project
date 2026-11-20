@@ -125,3 +125,23 @@ export const deleteResource = (path, id, token) => request(`${path}/${id}`, { me
 
 // GET /api/users (admin only) -> plain array, not paginated
 export const listUsers = (token) => request('/users', { token });
+
+// --- Enrollments ------------------------------------------------------------------
+// Records come back populated: sectionId (section with meetings and instructorIds),
+// courseId { code, title, credits }, termId { name, startDate, ... }, studentId { names, login }.
+// Waitlisted records also have waitlistPosition.
+
+// GET /api/enrollments (all pages). Students always get their own; instructors must pass
+// a sectionId they teach (a roster).
+export const getAllEnrollments = (params, token) => getAll('/enrollments', params, token);
+
+// POST /api/enrollments -> the new enrollment ('enrolled' or 'waitlisted') plus warnings[]
+export const registerForSection = (sectionId, token) =>
+  request('/enrollments', { method: 'POST', body: { sectionId }, token });
+
+// PATCH /api/enrollments/:id -> updated enrollment. A freed seat goes to the waitlist.
+export const dropEnrollment = (id, token) =>
+  request(`/enrollments/${id}`, { method: 'PATCH', body: { status: 'dropped' }, token });
+
+// PATCH /api/enrollments/:id with { status: 'completed', grade } or { grade } (instructor/admin)
+export const gradeEnrollment = (id, body, token) => request(`/enrollments/${id}`, { method: 'PATCH', body, token });

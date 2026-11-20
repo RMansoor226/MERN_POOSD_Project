@@ -28,7 +28,8 @@ function Meetings({ meetings }) {
 
 // Sections as a table. showCourse adds a Course column (class search); the course
 // detail page leaves it off because every row is the same course.
-export default function SectionTable({ sections, showCourse = false, caption }) {
+// action(section) adds a last column (Register for students, Roster for instructors).
+export default function SectionTable({ sections, showCourse = false, caption, action, actionLabel = 'Action' }) {
   return (
     <div className="table-wrap">
       <table className="data-table">
@@ -43,6 +44,7 @@ export default function SectionTable({ sections, showCourse = false, caption }) 
             <th scope="col">Mode</th>
             <th scope="col">Seats</th>
             <th scope="col">Status</th>
+            {action && <th scope="col">{actionLabel}</th>}
           </tr>
         </thead>
         <tbody>
@@ -81,6 +83,7 @@ export default function SectionTable({ sections, showCourse = false, caption }) 
                 <td>
                   <span className={`status-badge ${STATUS_CLASS[seats.label]}`}>{seats.label}</span>
                 </td>
+                {action && <td className="action-cell">{action(s)}</td>}
               </tr>
             );
           })}

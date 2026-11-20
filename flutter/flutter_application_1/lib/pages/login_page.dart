@@ -122,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         );
                         if (response.statusCode == 200) {
                           final id = await authService.getId();
-                          Navigator.push(context, 
+                          Navigator.push(context,
                           MaterialPageRoute(builder: (context) => HomePage(userId: id.toString())));
                         }
                       } catch(e) {
