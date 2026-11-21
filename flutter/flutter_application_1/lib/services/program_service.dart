@@ -28,7 +28,7 @@ class ProgramService {
   }
 
   // get all programs
-  Future<http.Response> getPrograms() async {
+  Future<http.Response> getAllPrograms() async {
     final token = await _storage.read(key: 'token');
 
     if (token == null) {

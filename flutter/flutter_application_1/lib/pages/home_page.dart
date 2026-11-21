@@ -38,7 +38,6 @@ class _HomePageState extends State<HomePage> {
   // program information
   List<dynamic> declaredPrograms = [];
   List<dynamic> otherPrograms = [];
-
   // term information
   List<dynamic> terms = [];
   dynamic latestTerm;
@@ -46,12 +45,15 @@ class _HomePageState extends State<HomePage> {
   // enrollment information
   List<dynamic> enrollments = [];
   List<dynamic> waitlists = [];
+  List<dynamic> enrolled = [];
+  List<dynamic> completed = [];
 
   @override
   void initState() {
     super.initState();
     loadTerms();
     getLatestTerm();
+    loadAllEnrollments();
     loadUser(widget.userId);
   }
 
@@ -95,7 +97,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> loadPrograms([bool all = true]) async {
     try {
-      final response = await programService.getPrograms();
+      final response = await programService.getAllPrograms();
 
       if (response.statusCode >= 200 || response.statusCode < 300) {
         otherPrograms = [];
@@ -167,13 +169,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> loadEnrollments() async {
+  Future<void> loadAllEnrollments() async {
     try {
-      final response = await enrollmentService.getEnrollment();
+      final response = await enrollmentService.getAllEnrollments();
 
       if (response.statusCode >= 200 || response.statusCode < 300) {
         final enrollmentsData = jsonDecode(response.body);
         waitlists = [];
+        enrolled = [];
+        completed = [];
 
         enrollments = enrollmentsData['items'] as List;
 
@@ -182,8 +186,19 @@ class _HomePageState extends State<HomePage> {
           final tmp = enrollments[i];
           
           if (tmp['status'] == 'waitlisted') {
-            waitlists.add(tmp);
-            debugPrint('1111111111111111111111111111111111111111111 ${tmp.toString()}');
+            setState(() {
+              waitlists.add(tmp);
+            });
+          }
+          else if (tmp['status'] == 'enrolled') {
+            setState(() {
+              enrolled.add(tmp);
+            });
+          }
+          else if (tmp['status'] == 'completed') {
+            setState(() {
+              completed.add(tmp);
+            });
           }
         }
       } else {
@@ -481,7 +496,7 @@ class _HomePageState extends State<HomePage> {
                                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
                                         textAlign: TextAlign.left,
                                         ),
-                                        Text('Catalog ${program['catalogYear']?.toString()} since ${month}' ?? 'Unnamed program',
+                                        Text('Catalog ${program['catalogYear']?.toString()} since ${month}',
                                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
                                         textAlign: TextAlign.left,
                                         ),
@@ -522,6 +537,10 @@ class _HomePageState extends State<HomePage> {
                                                 declaredPrograms: declaredPrograms 
                                               );
                                               if (!context.mounted) return;
+                                              
+                                              if (response.statusCode >= 300 || response.statusCode < 200) {
+                                                debugPrint('Response failed: ${response.statusCode}');
+                                              }
 
                                             } catch (e) {
                                               if (!context.mounted) return;
@@ -598,7 +617,7 @@ class _HomePageState extends State<HomePage> {
                                                   style: TextStyle(color: theme.colorScheme.secondary)
                                                 ),
                                                 subtitle: Text(
-                                                  '(${program['type']?.toString()}) - Catalog ${program['catalogYear']?.toString()}' ?? 'Unnamed program',
+                                                  '(${program['type']?.toString()}) - Catalog ${program['catalogYear']?.toString()}',
                                                   style: TextStyle(color: theme.colorScheme.secondary)
                                                 ),
                                                 trailing: ElevatedButton(
@@ -619,6 +638,9 @@ class _HomePageState extends State<HomePage> {
                                                       widget.userId,
                                                       declaredPrograms: declaredPrograms 
                                                       );
+                                                      if (response.statusCode >= 300 || response.statusCode < 200) {
+                                                        debugPrint("error ${response.statusCode}");
+                                                      }
                                                     } catch (e) {
                                                       if (!context.mounted) return;
                                                       ScaffoldMessenger.of(context).showSnackBar(
@@ -759,7 +781,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(24),
                 child: Container(
                   width: 360,
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primaryContainer,
                     border: Border(
@@ -778,12 +800,15 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
                         'Waitlists',
                         style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
                       ),
+                      const SizedBox(height:  8,),
+                      if (waitlists.isEmpty)
+                      Text('You are not on any waitlists.', style: TextStyle(color: theme.colorScheme.secondary)),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
@@ -880,13 +905,6 @@ class _HomePageState extends State<HomePage> {
                           );
                         },
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          loadEnrollments();
-                          debugPrint(enrollments.toString());
-                        }, 
-                        child: Text('amongus')
-                      ),
                     ],
                   )
                 ),
@@ -920,6 +938,140 @@ class _HomePageState extends State<HomePage> {
                         'My Schedule',
                         style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
                       ),
+                      const SizedBox(height: 8,),
+                      if (enrolled.isEmpty)
+                      TextButton(
+                        onPressed: () {
+                          
+                        },
+                        child: Text('You are not enrolled for any classes. Find classes',
+                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16, fontWeight: FontWeight.bold,
+                         decoration: TextDecoration.underline, decorationColor: theme.colorScheme.primary),),
+                      ),
+                      if (enrolled.isNotEmpty)
+                      Text('${latestTerm?['name'] ?? 'loading term'}',
+                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8,),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: enrolled.length,
+                        itemBuilder: (context, index) {
+                          final enrolls = enrolled[index];
+                          final sectionNum = enrolls['sectionId']['sectionNumber'];
+                          final courseCode = enrolls['courseId']['code'];
+                          final termName = enrolls['termId']['name'];
+                          final courseName = enrolls['courseId']['title'];
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.secondaryContainer,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border(
+                                left: BorderSide(
+                                  color: theme.colorScheme.primary,
+                                  width: 4
+                                ),
+                              )
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded( child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.primary,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          courseCode?.toString() ?? 'Unnamed program',
+                                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8,),
+                                      Expanded(
+                                        child: Text(
+                                          courseName?.toString() ?? 'Unnamed program',
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                                          textAlign: TextAlign.left,
+                                          softWrap: true,
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  Text('Section ${sectionNum?.toString() ?? 'Unnamed program'} - ${termName?.toString() ?? 'Unnamed program'}' ,
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                  textAlign: TextAlign.left,
+                                  ),
+                                ],
+                                )),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final confirmed = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        backgroundColor: theme.colorScheme.primaryContainer,
+                                        title: Text('Drop class?', style: TextStyle(color: theme.colorScheme.secondary)),
+                                        content: Text('Are you sure you want to drop this class?', style: TextStyle(color: theme.colorScheme.secondary)),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(true),
+                                            child: const Text('Drop'),
+                                          ),
+                                        ],
+                                      )
+                                    );
+                                    if (confirmed == true) {
+                                      // api function
+                                      try {
+                                        final response = await enrollmentService.dropEnrollment(
+                                          enrolls['_id'].toString()
+                                        );
+                                        if (!context.mounted) return;
+
+                                        // remove program from list
+                                        setState(() {
+                                          enrolled.removeAt(index);
+                                        });
+
+                                        debugPrint(response.body);
+
+                                      } catch (e) {
+                                        if (!context.mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Could not connect to the server')),
+                                          );
+                                          debugPrint(e.toString());
+                                      }
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    foregroundColor: theme.colorScheme.secondary,
+                                    shape: const CircleBorder(),
+                                    padding: EdgeInsets.zero,
+                                    fixedSize: const Size(40, 40),
+                                  ),
+                                  child: Text('Drop', style: TextStyle(color: theme.colorScheme.secondary),),
+                                ),
+                              ],
+                            ), 
+                          );
+                        },
+                      ),
                     ],
                   )
                 ),
@@ -952,6 +1104,118 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         'Degree Progress',
                         style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8,),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: declaredPrograms.length,
+                        itemBuilder: (context, index) {
+                          final programId = declaredPrograms[index]['programId'];
+                          int totalCreditHours = 0;
+
+                          // calc tch
+                          for (int i = 0; i < completed.length; i++) {
+                            totalCreditHours += (completed[i]['courseId']['credits'] as num).toInt();
+                          }
+
+                          return FutureBuilder(
+                            future: programService.getProgram(programId),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              }
+
+                              if (snapshot.hasError || !snapshot.hasData) {
+                                return const Text('Could not load program');
+                              }
+
+                              final program = jsonDecode(snapshot.data!.body);
+
+                              final requirements = program['requirements'];
+                              
+                              // get num of requirements completed
+                              int reqCompleted = 0;
+                              int creditHours = 0;
+                              
+                              for (int i = 0; i < requirements.length; i++) {
+                                final courses = requirements[i]['courseIds'];
+                                
+                                int count = 0;
+                                for (int j = 0; j < courses.length; j++) {
+                                  final courseId = courses[j];
+                                  final courseIdx = completed.indexWhere(
+                                    (course) => course['courseId']['_id'] == courseId
+                                  );
+                                  
+                                  if (courseIdx != -1) {
+                                    count++;
+                                    if (count == courses.length) reqCompleted++;
+                                    creditHours += (completed[courseIdx]['courseId']['credits'] as num).toInt();
+                                  }
+                                }
+                              }
+
+                              return Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.secondaryContainer,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border(
+                                    left: BorderSide(
+                                      color: theme.colorScheme.primary,
+                                      width: 4
+                                    ),
+                                  )
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${program['name']}',
+                                          style: TextStyle(
+                                            color: theme.colorScheme.secondary,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            decorationColor: theme.colorScheme.primary
+                                          ),
+                                        ),
+                                        Text(
+                                          '${reqCompleted}/${requirements.length} reqs - $totalCreditHours/${program['totalCredits']} hours',
+                                          style: TextStyle(
+                                            color: theme.colorScheme.tertiary,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            decorationColor: theme.colorScheme.primary
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    ListView.builder(
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount: requirements.length,
+                                      itemBuilder: (context, index) {
+                                        
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text('${requirements[index]}',
+                                            style: TextStyle(color: theme.colorScheme.secondary)
+                                            ),
+                                          ],
+                                        );
+                                      },  
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ],
                   )
