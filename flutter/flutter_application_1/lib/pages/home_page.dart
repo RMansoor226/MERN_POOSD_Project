@@ -1118,102 +1118,152 @@ class _HomePageState extends State<HomePage> {
                           for (int i = 0; i < completed.length; i++) {
                             totalCreditHours += (completed[i]['courseId']['credits'] as num).toInt();
                           }
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: FutureBuilder(
+                              future: programService.getProgram(programId),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
 
-                          return FutureBuilder(
-                            future: programService.getProgram(programId),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const CircularProgressIndicator();
-                              }
+                                if (snapshot.hasError || !snapshot.hasData) {
+                                  return const Text('Could not load program');
+                                }
 
-                              if (snapshot.hasError || !snapshot.hasData) {
-                                return const Text('Could not load program');
-                              }
+                                final program = jsonDecode(snapshot.data!.body);
 
-                              final program = jsonDecode(snapshot.data!.body);
-
-                              final requirements = program['requirements'];
-                              
-                              // get num of requirements completed
-                              int reqCompleted = 0;
-                              int creditHours = 0;
-                              
-                              for (int i = 0; i < requirements.length; i++) {
-                                final courses = requirements[i]['courseIds'];
+                                final requirements = program['requirements'];
                                 
-                                int count = 0;
-                                for (int j = 0; j < courses.length; j++) {
-                                  final courseId = courses[j];
-                                  final courseIdx = completed.indexWhere(
-                                    (course) => course['courseId']['_id'] == courseId
-                                  );
+                                // get num of requirements completed
+                                int reqCompleted = 0;
+                                
+                                for (int i = 0; i < requirements.length; i++) {
+                                  final courses = requirements[i]['courseIds'];
                                   
-                                  if (courseIdx != -1) {
-                                    count++;
-                                    if (count == courses.length) reqCompleted++;
-                                    creditHours += (completed[courseIdx]['courseId']['credits'] as num).toInt();
+                                  int count = 0;
+                                  for (int j = 0; j < courses.length; j++) {
+                                    final courseId = courses[j];
+                                    final courseIdx = completed.indexWhere(
+                                      (course) => course['courseId']['_id'] == courseId
+                                    );
+                                    
+                                    if (courseIdx != -1) {
+                                      count++;
+                                      if (count == courses.length) reqCompleted++;
+                                    }
                                   }
                                 }
-                              }
 
-                              return Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.secondaryContainer,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border(
-                                    left: BorderSide(
-                                      color: theme.colorScheme.primary,
-                                      width: 4
-                                    ),
-                                  )
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${program['name']}',
-                                          style: TextStyle(
-                                            color: theme.colorScheme.secondary,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            decorationColor: theme.colorScheme.primary
-                                          ),
-                                        ),
-                                        Text(
-                                          '${reqCompleted}/${requirements.length} reqs - $totalCreditHours/${program['totalCredits']} hours',
-                                          style: TextStyle(
-                                            color: theme.colorScheme.tertiary,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            decorationColor: theme.colorScheme.primary
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    ListView.builder(
-                                      shrinkWrap: true,
-                                      physics: NeverScrollableScrollPhysics(),
-                                      itemCount: requirements.length,
-                                      itemBuilder: (context, index) {
-                                        
-                                        return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text('${requirements[index]}',
-                                            style: TextStyle(color: theme.colorScheme.secondary)
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border(
+                                      left: BorderSide(
+                                        color: theme.colorScheme.primary,
+                                        width: 4
+                                      ),
+                                    )
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '${program['name']}',
+                                            style: TextStyle(
+                                              color: theme.colorScheme.secondary,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              decorationColor: theme.colorScheme.primary
                                             ),
-                                          ],
-                                        );
-                                      },  
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                                          ),
+                                          Text(
+                                            '${reqCompleted}/${requirements.length} reqs - $totalCreditHours/${program['totalCredits']} hours',
+                                            style: TextStyle(
+                                              color: theme.colorScheme.tertiary,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              decorationColor: theme.colorScheme.primary
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: NeverScrollableScrollPhysics(),
+                                        itemCount: requirements.length,
+                                        itemBuilder: (context, index) {
+                                          // get courses completed and courses registered
+                                          int courseCount = 0;
+                                          int enrolledCount = 0;
+
+                                          for (int i = 0; i < requirements[index]['courseIds'].length; i++) {
+                                            final courseIdx = completed.indexWhere(
+                                              (course) => course['courseId']['_id'] == requirements[index]['courseIds'][i]
+                                            );
+                                            final enrolledIdx = enrolled.indexWhere(
+                                              (course) => course['courseId']['_id'] == requirements[index]['courseIds'][i]
+                                            );
+
+                                            if (courseIdx != -1) {
+                                              courseCount++;
+                                            }
+                                            if (enrolledIdx != -1) {
+                                              enrolledCount++;
+                                            }
+                                          }
+
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text('${requirements[index]['name']}',
+                                                    style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16, fontWeight: FontWeight.bold)
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8,),
+                                                  Text('$courseCount/${requirements[index]['n'] ?? requirements[index]['courseIds'].length} courses'
+                                                    '${enrolledCount == 0 ? '' : ' - $enrolledCount in progress'}',
+                                                    style: TextStyle(color: theme.colorScheme.tertiary, fontSize: 16,)
+                                                  ),
+                                                ],
+                                              ),
+                                              Container(
+                                                height: 12,
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: theme.colorScheme.tertiary,
+                                                    width: 1
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(20)
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: LinearProgressIndicator(
+                                                    value: courseCount == 0 ? 0 : courseCount/(requirements[index]['n'] ?? requirements[index]['courseIds'].length),
+                                                    minHeight: 8,
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    color: (courseCount == (requirements[index]['n'] ?? requirements[index]['courseIds'].length) ? const Color.fromARGB(255, 33, 121, 36) : theme.colorScheme.primary)
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },  
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           );
                         },
                       ),
