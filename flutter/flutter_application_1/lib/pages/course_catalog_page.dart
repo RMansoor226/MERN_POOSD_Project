@@ -76,6 +76,7 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
               }
             ),
             ListTile(
@@ -112,7 +113,40 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
           alignment: Alignment.topCenter,
           child: Column(
             children: [
-              
+              Container(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  width: 360,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 4
+                      )
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          'Courses go here',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ]
           )
         )

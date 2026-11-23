@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_application_1/pages/course_catalog_page.dart';
 import 'package:flutter_application_1/pages/class_search_page.dart';
 import 'package:flutter_application_1/pages/programs_page.dart';
+import 'package:flutter_application_1/pages/program_display_page.dart';
 
 import '../services/auth_service.dart';
 import '../services/program_service.dart';
@@ -710,6 +711,19 @@ class _HomePageState extends State<HomePage> {
                           ),
                           child: Text("Declare a program", style: TextStyle(color: theme.colorScheme.secondary))
                           ),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton(
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder:(context) => ProgramsPage(userId: widget.userId)));
+                            },
+                            child: Text(
+                              'Browse all programs',
+                              style: TextStyle(color: theme.colorScheme.secondary,
+                              decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1), decorationThickness: 2),
+                              ),
+                            ),
+                          ),
                         ],
                       )
                     ],
@@ -780,8 +794,8 @@ class _HomePageState extends State<HomePage> {
                               ),
                                TextButton(
                                 onPressed: () {
-                                  debugPrint(getLatestTerm().toString());
-                                }, // add function later!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                                },
                                 style: TextButton.styleFrom(
                                   alignment: Alignment.centerLeft,
                                   padding: EdgeInsets.zero,
@@ -794,7 +808,8 @@ class _HomePageState extends State<HomePage> {
                                     Text(
                                       'Browse ${latestTerm?['name'] ?? 'Unknown'} classes',
                                       style: TextStyle(fontSize: 16, color: theme.colorScheme.secondary, fontWeight: FontWeight.bold,
-                                      decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1)
+                                      decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1),
+                                      decorationThickness: 2
                                       )
                                     ),
                                     Icon(Icons.arrow_forward, size: 16, color: theme.colorScheme.secondary),
@@ -974,11 +989,12 @@ class _HomePageState extends State<HomePage> {
                       if (enrolled.isEmpty)
                       TextButton(
                         onPressed: () {
-                          
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
                         },
                         child: Text('You are not enrolled for any classes. Find classes',
                         style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16, fontWeight: FontWeight.bold,
-                         decoration: TextDecoration.underline, decorationColor: theme.colorScheme.primary),),
+                         decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1), decorationThickness: 2),
+                        ),
                       ),
                       if (enrolled.isNotEmpty)
                       Text('${latestTerm?['name'] ?? 'loading term'}',

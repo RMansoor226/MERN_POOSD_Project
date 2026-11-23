@@ -1,11 +1,13 @@
 import 'dart:developer';
+import 'package:flutter_application_1/pages/course_display_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
-import 'pages/class_search_page.dart';
 import 'pages/course_catalog_page.dart';
+import 'pages/course_display_page.dart';
+import 'pages/class_search_page.dart';
 import 'pages/program_display_page.dart';
 import 'pages/programs_page.dart';
 
@@ -66,6 +68,12 @@ class MyApp extends StatelessWidget {
 
           return MaterialPageRoute(
             builder: (context) => ProgramDisplayPage(userId: ModalRoute.of(context)!.settings.arguments as String, programId: programId)
+          );
+        } else if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'catalog') {
+          final courseId = uri.pathSegments[1];
+
+          return MaterialPageRoute(
+            builder: (context) => CourseDisplayPage(userId: ModalRoute.of(context)!.settings.arguments as String, courseId: courseId)
           );
         }
 
