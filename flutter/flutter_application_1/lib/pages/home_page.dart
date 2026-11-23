@@ -1202,19 +1202,42 @@ class _HomePageState extends State<HomePage> {
                                           int courseCount = 0;
                                           int enrolledCount = 0;
 
-                                          for (int i = 0; i < requirements[index]['courseIds'].length; i++) {
-                                            final courseIdx = completed.indexWhere(
-                                              (course) => course['courseId']['_id'] == requirements[index]['courseIds'][i]
-                                            );
-                                            final enrolledIdx = enrolled.indexWhere(
-                                              (course) => course['courseId']['_id'] == requirements[index]['courseIds'][i]
-                                            );
+                                          if (requirements[index]['courseIds'].length > 0) {
+                                            for (int i = 0; i < requirements[index]['courseIds'].length; i++) {
+                                              final courseIdx = completed.indexWhere(
+                                                (course) => course['courseId']['_id'] == requirements[index]['courseIds'][i]
+                                              );
+                                              final enrolledIdx = enrolled.indexWhere(
+                                                (course) => course['courseId']['_id'] == requirements[index]['courseIds'][i]
+                                              );
 
-                                            if (courseIdx != -1) {
-                                              courseCount++;
+                                              if (courseIdx != -1) {
+                                                courseCount++;
+                                              }
+                                              if (enrolledIdx != -1) {
+                                                enrolledCount++;
+                                              }
                                             }
-                                            if (enrolledIdx != -1) {
-                                              enrolledCount++;
+                                          } else if (requirements[index]['rule'] == 'anyN') {
+                                            for (int i = 0; i < enrolled.length; i++) {
+                                              // get course code as string
+                                              final match = RegExp(r'[A-Za-z]{3}(\d{4})$').firstMatch(enrolled[i]['courseId']['code']);
+                                              if (match != null) {
+                                                final level = int.parse(match.group(1)!);
+                                                if (level >= requirements[index]['filter']['minLevel']) {
+                                                  enrolledCount++;
+                                                }
+                                              }
+                                            }
+                                            for (int i = 0; i < completed.length; i++) {
+                                              // get course code as string
+                                              final match = RegExp(r'[A-Za-z]{3}(\d{4})$').firstMatch(completed[i]['courseId']['code']);
+                                              if (match != null) {
+                                                final level = int.parse(match.group(1)!);
+                                                if (level >= requirements[index]['filter']['minLevel']) {
+                                                  enrolledCount++;
+                                                }
+                                              }
                                             }
                                           }
 
@@ -1230,7 +1253,7 @@ class _HomePageState extends State<HomePage> {
                                                     ),
                                                   ),
                                                   const SizedBox(width: 8,),
-                                                  Text('$courseCount/${requirements[index]['n'] ?? requirements[index]['courseIds'].length} courses'
+                                                  Text('$courseCount/${requirements[index]['n'] ?? requirements[index]['courseIds'].length}'
                                                     '${enrolledCount == 0 ? '' : ' - $enrolledCount in progress'}',
                                                     style: TextStyle(color: theme.colorScheme.tertiary, fontSize: 16,)
                                                   ),
