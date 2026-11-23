@@ -1,12 +1,14 @@
-import 'package:flutter_application_1/pages/login_page.dart';
-import 'package:flutter_application_1/services/enrollment_service.dart';
-import 'package:flutter_application_1/services/term_service.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
+import 'package:flutter_application_1/pages/course_catalog_page.dart';
+import 'package:flutter_application_1/pages/class_search_page.dart';
+import 'package:flutter_application_1/pages/programs_page.dart';
+
 import '../services/auth_service.dart';
 import '../services/program_service.dart';
+import '../services/term_service.dart';
 import '../services/enrollment_service.dart';
 
 
@@ -253,9 +255,37 @@ class _HomePageState extends State<HomePage> {
               child: Text('Navigation', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
             ),
             ListTile(
-              title: const Text('Home', style: TextStyle(color: Colors.white)),
+              title: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text('Home', style: TextStyle(color: Colors.white)),
+              ),
               onTap: () {
                 Navigator.pop(context);
+              }
+            ),
+            ListTile(
+              title: Text('Course Catalog', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
+              }
+            ),
+            ListTile(
+              title: Text('Class Search', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+              }
+            ),
+            ListTile(
+              title: Text('Programs', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId)));
               }
             ),
             ListTile(
@@ -263,8 +293,10 @@ class _HomePageState extends State<HomePage> {
               onTap: () async {
                 Navigator.pop(context);
                 await authService.logout();
-                Navigator.push(context, 
-                MaterialPageRoute(builder: (context) => LoginPage(title: 'login')));
+                
+                if (!context.mounted) return;
+
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               },
             )
           ]

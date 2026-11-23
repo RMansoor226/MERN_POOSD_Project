@@ -3,6 +3,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'pages/login_page.dart';
+import 'pages/home_page.dart';
+import 'pages/class_search_page.dart';
+import 'pages/course_catalog_page.dart';
+import 'pages/program_display_page.dart';
+import 'pages/programs_page.dart';
 
 
 void main() async {
@@ -27,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Bettermyucf',
       theme: ThemeData(
         colorScheme: .fromSeed(
           seedColor: const Color.fromARGB(255, 22, 22, 22),
@@ -41,7 +46,35 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color.fromARGB(255, 16, 16, 16),
       ),
-      home: const LoginPage(title: 'Course Registration'),
+      initialRoute: '/login',
+      routes: {
+        '/home': (context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
+            return HomePage(userId: userId);},
+        '/login': (context) => const LoginPage(title: 'Login Page'),
+        '/catalog':(context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
+            return CourseCatalogPage(userId: userId);},
+        'classes':(context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
+            return ClassSearchPage(userId: userId);},
+        '/programs':(context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
+            return ProgramsPage(userId: userId);},
+      },
+      onGenerateRoute: (id) {
+        final uri = Uri.parse(id.name ?? '');
+
+        if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'programs') {
+          final programId = uri.pathSegments[1];
+
+          return MaterialPageRoute(
+            builder: (context) => ProgramDisplayPage(userId: ModalRoute.of(context)!.settings.arguments as String, programId: programId)
+          );
+        }
+
+        return MaterialPageRoute(
+          builder: (context) => const Scaffold(
+            body: Center(child: Text('Page not found'))
+          ),
+        );
+      },
     );
   }
 }
