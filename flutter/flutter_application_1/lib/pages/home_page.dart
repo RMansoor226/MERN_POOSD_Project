@@ -884,8 +884,12 @@ class _HomePageState extends State<HomePage> {
                                 Expanded( child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(courseCode?.toString() ?? 'Unnamed program',
+                                  Text('${courseCode}',
                                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                                  textAlign: TextAlign.left,
+                                  ),
+                                  Text('#${enrolls?['waitlistPosition']} in waitlist' ,
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
                                   textAlign: TextAlign.left,
                                   ),
                                   Text('Section ${sectionNum?.toString() ?? 'Unnamed program'} - ${termName?.toString() ?? 'Unnamed program'}' ,

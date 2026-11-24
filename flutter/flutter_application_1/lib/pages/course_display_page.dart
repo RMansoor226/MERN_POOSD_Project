@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -44,7 +45,6 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
 
   // enrollment information
   List<dynamic> enrollment = [];
-  List<dynamic> dropped = [];
 
   // section information
   List<dynamic> sections = [];
@@ -144,17 +144,9 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final enrollmentData = jsonDecode(response.body);
         
-        for (int i = 0; i < enrollmentData['items'].length; i++) {
-          if (enrollmentData['items'][i]['status'] != 'dropped') {
-            setState(() {
-              enrollment.add(enrollmentData['items'][i]);
-            });
-          } else {
-            setState(() {
-              dropped.add(enrollmentData['items'][i]);
-            });
-          }
-        }
+        setState(() {
+          enrollment = enrollmentData['items'];
+        });
 
       } else {
         debugPrint('Request failed: ${response.statusCode} ${response.body}');
@@ -555,11 +547,13 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                         
                                         // check to see if you are in the course
                                         final courseIdx = enrollment.indexWhere(
-                                          (e) => e['courseId']['_id'] == section['courseId']['_id']
+                                          (e) => e['courseId']['_id'] == section['courseId']['_id'] &&
+                                                 e['status'] != 'dropped'
                                         );
 
                                         final sectionIdx = enrollment.indexWhere(
-                                          (e) => e['sectionId']['_id'] == section['_id']
+                                          (e) => e['sectionId']['_id'] == section['_id'] &&
+                                                 e['status'] != 'dropped'
                                         );
 
                                         // check if section belongs to term
