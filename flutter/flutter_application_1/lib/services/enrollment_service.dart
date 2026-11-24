@@ -28,7 +28,7 @@ class EnrollmentService {
     );
   }
 
-  // patch enrollment
+  // drop enrollment
   Future<http.Response> dropEnrollment(
     String classId,
   ) async {
@@ -51,6 +51,33 @@ class EnrollmentService {
       },
       body: jsonEncode({
         'status': 'dropped',
+      })
+    );
+  }
+
+  // add enrollment
+  Future<http.Response> addEnrollment(
+    String sectionId,
+  ) async {
+    final token = await _storage.read(key: 'token');
+
+    if (token == null) {
+      throw StateError('No session token found. Please log in first.');
+    }
+
+    final uri = Uri.parse(
+      '$_baseUrl/api/enrollments',
+    );
+
+    return http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: jsonEncode({
+        'sectionId': sectionId,
       })
     );
   }

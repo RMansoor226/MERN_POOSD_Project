@@ -1,3 +1,5 @@
+import 'package:flutter_application_1/pages/course_display_page.dart';
+import 'package:flutter_application_1/services/course_service.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -5,8 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/pages/class_search_page.dart';
 import 'package:flutter_application_1/pages/programs_page.dart';
+import 'package:flutter_application_1/pages/course_display_page.dart';
 
 import '../services/auth_service.dart';
+import '../services/department_service.dart';
 
 class CourseCatalogPage extends StatefulWidget {
   const CourseCatalogPage({super.key, required this.userId});
@@ -19,6 +23,108 @@ class CourseCatalogPage extends StatefulWidget {
 
 class _CourseCatalogPage extends State<CourseCatalogPage> {
   final authService = AuthService();
+
+  final departmentService = DepartmentService();
+  final courseService = CourseService();
+
+  // catalog filter stuff
+  final _formKey = GlobalKey<FormState>();
+  final catalogController = TextEditingController();
+  String query = '';
+  String? selectedDepartment = 'all';
+  List<dynamic> allDepartments = [];
+  List<DropdownMenuItem<String>> builtDepartments = [];
+  
+  // courses
+  List<dynamic> allCourses = [];
+  List<dynamic> filteredCourses = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadAllDepartments();
+    getCourses();
+  }
+
+  Future<void> loadAllDepartments() async {
+    try {
+      final response = await departmentService.getAllDepartments();
+
+      if (response.statusCode >= 200 || response.statusCode < 300) {
+        final departmentData = jsonDecode(response.body);
+
+        setState(() {
+          allDepartments = departmentData['items'] as List;
+          builtDepartments = buildDepartmentItems(allDepartments);
+        });
+
+      } else {
+        debugPrint('Request failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Could not load user: $e');
+    }
+  }
+
+  List<DropdownMenuItem<String>> buildDepartmentItems(List<dynamic> departments){
+    List<DropdownMenuItem<String>> items = [const DropdownMenuItem(value: 'all', child: Text('All departments'))];
+    
+    for (int i = 0; i < departments.length; i++) {
+      final code = departments[i]['code']?.toString() ?? '';
+      final name = departments[i]['name']?.toString() ?? 'unnamed';
+      
+      if (code.isNotEmpty) {
+        items.add(DropdownMenuItem(value: code, child: Text(name)));
+      }
+    }
+    return items;
+  }
+
+  Future<void> getCourses() async {
+    try {
+      final response = await courseService.getAllCourses();
+
+      if (response.statusCode >= 200 || response.statusCode < 300) {
+        final courseData = jsonDecode(response.body);
+
+        allCourses = courseData['items'];
+        
+        List<dynamic> tmp = [];
+        if (selectedDepartment == 'all') {
+          tmp = allCourses;
+        } else {
+          for (int i = 0; i < allCourses.length; i++) {
+            if (allCourses[i]['departmentId']['code'] == selectedDepartment) {
+              tmp.add(allCourses[i]);
+            }
+          }
+        }
+        setState(() {
+          filteredCourses = [];
+        });
+        for (int i = 0; i < tmp.length; i++) {
+          if (tmp[i]['title'].toString().toLowerCase().contains(query) ||
+            tmp[i]['subject'].toString().toLowerCase().contains(query) ||
+            tmp[i]['number'].toString().toLowerCase().contains(query)) {
+            setState(() {
+              debugPrint(tmp[i]['title'].contains(query).toString());
+              debugPrint('subject ${tmp[i]['subject'].contains(query).toString()}');
+              debugPrint('number ${tmp[i]['number'].contains(query).toString()}');
+              setState(() {
+                filteredCourses.add(tmp[i]);
+              });
+            });
+          }
+        }
+        debugPrint(filteredCourses.toString());
+
+      } else {
+        debugPrint('Request failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Could not load user: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,14 +244,105 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          'Courses go here',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                      TextFormField(
+                        controller: catalogController,
+                        decoration: const InputDecoration(labelText: 'Search'),
+                        style: TextStyle(color: theme.colorScheme.secondary),
+                        keyboardType: TextInputType.text,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              initialValue: selectedDepartment,
+                              decoration: const InputDecoration(labelText: 'Category'),
+                              dropdownColor: theme.colorScheme.primaryContainer,
+                              style: TextStyle(color: theme.colorScheme.secondary),
+                              items: builtDepartments,
+                              onChanged: (value) {
+                                selectedDepartment = value;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                debugPrint('${catalogController.text} and $selectedDepartment');
+                                query = catalogController.text;
+                                getCourses();
+                              },
+                              child: Text('Search', style: TextStyle(color: theme.colorScheme.secondary),),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary
+                              )
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: filteredCourses.length,
+                itemBuilder: (context, index) {
+                  final course = filteredCourses[index];
+
+                  return Padding(
+                    padding: EdgeInsets.only(left: 24, right:24, bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border(
+                          left: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 4
+                          ),
+                        )
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded( child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                alignment: Alignment.centerLeft,
+                                padding: EdgeInsets.zero,
+                              ),
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: filteredCourses[index]['_id'])));
+                              },
+                              child: Text(
+                                '${filteredCourses[index]['subject']}${filteredCourses[index]['number']}'
+                                ' - ${filteredCourses[index]['title']}',
+                                style: TextStyle(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1), decorationThickness: 2
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${filteredCourses[index]['departmentId']['name']}'
+                              '${filteredCourses[index]['attributes'].length == 0 ? '' : ' - ${filteredCourses[index]?['attributes'].join(', ')}'}'
+                              ' - ${filteredCourses[index]['credits']} ${filteredCourses[index]['credits'] == 1 ? 'credit' : 'credits'}',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                              textAlign: TextAlign.left,
+                            ),
+                          ],
+                          )),
+                        ],
+                      ), 
+                    )
+                  );
+                },
               ),
             ]
           )

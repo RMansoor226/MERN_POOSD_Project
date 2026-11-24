@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final response = await programService.getAllPrograms();
 
-      if (response.statusCode >= 200 || response.statusCode < 300) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         otherPrograms = [];
 
         final programData = jsonDecode(response.body);
@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final response = await termService.getTerms();
 
-      if (response.statusCode >= 200 || response.statusCode < 300) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         final termData = jsonDecode(response.body);
         
         terms = termData['items'] as List;
@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final response = await enrollmentService.getAllEnrollments();
 
-      if (response.statusCode >= 200 || response.statusCode < 300) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         final enrollmentsData = jsonDecode(response.body);
         waitlists = [];
         enrolled = [];
@@ -352,21 +352,21 @@ class _HomePageState extends State<HomePage> {
                               keyboardType: TextInputType.text,
                               validator: (value) =>
                                   value == null || value.isEmpty ? 'Enter your first name' : null,
-                            ),
-                            TextFormField(
-                              controller: lastNameController,
-                              decoration: const InputDecoration(labelText: 'Last Name'),
-                              style: TextStyle(color: theme.colorScheme.secondary),
-                              keyboardType: TextInputType.text,
-                              validator: (value) =>
-                                  value == null || value.isEmpty ? 'Enter your last name' : null,
-                            ),
-                            TextFormField(
-                              controller: emailController,
-                              decoration: const InputDecoration(labelText: 'Email'),
-                              style: TextStyle(color: theme.colorScheme.secondary),
-                              keyboardType: TextInputType.emailAddress,
-                            ),
+                              ),
+                              TextFormField(
+                                controller: lastNameController,
+                                decoration: const InputDecoration(labelText: 'Last Name'),
+                                style: TextStyle(color: theme.colorScheme.secondary),
+                                keyboardType: TextInputType.text,
+                                validator: (value) =>
+                                    value == null || value.isEmpty ? 'Enter your last name' : null,
+                              ),
+                              TextFormField(
+                                controller: emailController,
+                                decoration: const InputDecoration(labelText: 'Email'),
+                                style: TextStyle(color: theme.colorScheme.secondary),
+                                keyboardType: TextInputType.emailAddress,
+                              ),
                             ],
                           ),
                         )
