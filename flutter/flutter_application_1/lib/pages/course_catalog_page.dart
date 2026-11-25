@@ -28,7 +28,6 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
   final courseService = CourseService();
 
   // catalog filter stuff
-  final _formKey = GlobalKey<FormState>();
   final catalogController = TextEditingController();
   String query = '';
   String? selectedDepartment = 'all';
@@ -182,7 +181,6 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
               }
             ),
             ListTile(
@@ -271,7 +269,7 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
                             child: ElevatedButton(
                               onPressed: () {
                                 debugPrint('${catalogController.text} and $selectedDepartment');
-                                query = catalogController.text;
+                                query = catalogController.text.toLowerCase();
                                 getCourses();
                               },
                               child: Text('Search', style: TextStyle(color: theme.colorScheme.secondary),),

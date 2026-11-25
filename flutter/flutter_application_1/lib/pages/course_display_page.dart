@@ -95,7 +95,6 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
     // get prereqs
     for (int i = 0; i < prereqsIds.length; i++) {
       try {
-        debugPrint(prereqsIds.toString());
         final response = await courseService.getCourse(prereqsIds[i]['courseId']);
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -177,7 +176,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
 
   Future<void> getSections() async {
     try {
-      final response = await sectionService.getSections(widget.courseId);
+      final response = await sectionService.getSectionsByCourse(widget.courseId);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final sectionData = jsonDecode(response.body);
@@ -263,7 +262,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
               }
             ),
             ListTile(
@@ -496,7 +495,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                               Flexible(
                                 child:TextButton(
                                   onPressed: () {
-
+                                    debugPrint('AMONGUS ASDFH');
                                   },
                                   child: Text(
                                     'Search classes for ${course?['subject']}${course?['number']}',
@@ -513,8 +512,8 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                             physics: NeverScrollableScrollPhysics(),
                             itemCount: terms.length,
                             padding: EdgeInsets.zero,
-                            itemBuilder: (context, index) {
-                              final term = terms[index];
+                            itemBuilder: (context, index1) {
+                              final term = terms[index1];
 
                               // check if term has classes
                               bool hasSection = false;
@@ -524,167 +523,176 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                 }
                               }
 
+                              List<dynamic> tmpSection = sections;
+
                               if (hasSection) {
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${term?['name'] ?? ''}',
-                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 18, fontWeight: FontWeight.bold),
-                                    ),
-                                    ListView.builder(
-                                      shrinkWrap: true,
-                                      physics: NeverScrollableScrollPhysics(),
-                                      itemCount: sections.length,
-                                      itemBuilder:(context, index) {
-                                        final section = sections[index];
+                                tmpSection = sections.where((section) {
+                                  // check if same term
+                                  if (section['termId']['_id'] != term['_id']) {
+                                    return false;
+                                  }
+                                  return true;
+                                }).toList(); 
+                              }
 
-                                        final status = switch (section['status']) {
-                                                        'open' => section['capacity'] != section['enrolledCount'] ? 'open' : 'waitlist',
-                                                        'closed' => 'closed',
-                                                        _ => 'loading...'
-                                                      };
-                                        
-                                        // check to see if you are in the course
-                                        final courseIdx = enrollment.indexWhere(
-                                          (e) => e['courseId']['_id'] == section['courseId']['_id'] &&
-                                                 e['status'] != 'dropped'
-                                        );
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${term?['name'] ?? ''}',
+                                    style: TextStyle(color: theme.colorScheme.secondary, fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: tmpSection.length,
+                                    itemBuilder:(context, index) {
+                                      final section = tmpSection[index];
+                                      final status = switch (section['status']) {
+                                                      'open' => section['capacity'] != section['enrolledCount'] ? 'open' : 'waitlist',
+                                                      'closed' => 'closed',
+                                                      _ => 'loading...'
+                                                    };
+                                      
+                                      // check to see if you are in the course
+                                      final courseIdx = enrollment.indexWhere(
+                                        (e) => e['courseId']['_id'] == section['courseId']['_id'] &&
+                                                e['status'] != 'dropped'
+                                      );
 
-                                        final sectionIdx = enrollment.indexWhere(
-                                          (e) => e['sectionId']['_id'] == section['_id'] &&
-                                                 e['status'] != 'dropped'
-                                        );
+                                      final sectionIdx = enrollment.indexWhere(
+                                        (e) => e['sectionId']['_id'] == section['_id'] &&
+                                                e['status'] != 'dropped'
+                                      );
 
-                                        // check if section belongs to term
-                                        if ((section?['termId']['_id'] == term?['_id'])) {
-                                          return Padding(
-                                            padding: EdgeInsets.only(bottom: 8),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                color: theme.colorScheme.secondaryContainer,
-                                                borderRadius: BorderRadius.circular(16),
-                                                border: Border(
-                                                  left: BorderSide(
-                                                    color: switch (section['status']) {
-                                                      'open' => section['capacity'] == section['enrolledCount'] ? theme.colorScheme.primary : theme.colorScheme.tertiaryContainer,
-                                                      'closed' => theme.colorScheme.onPrimary,
-                                                      _ => theme.colorScheme.primary
-                                                    },
-                                                    width: 4
-                                                  ),
+                                      // check if section belongs to term
+                                      if ((section?['termId']['_id'] == term?['_id'])) {
+                                        return Padding(
+                                          padding: EdgeInsets.only(bottom: 8),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.secondaryContainer,
+                                              borderRadius: BorderRadius.circular(16),
+                                              border: Border(
+                                                left: BorderSide(
+                                                  color: switch (section['status']) {
+                                                    'open' => section['capacity'] == section['enrolledCount'] ? theme.colorScheme.primary : theme.colorScheme.tertiaryContainer,
+                                                    'closed' => theme.colorScheme.onPrimary,
+                                                    _ => theme.colorScheme.primary
+                                                  },
+                                                  width: 4
                                                 ),
                                               ),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        'Prof: ${section?['instructorIds'][0]['firstName']} ${section?['instructorIds'][0]['lastName']}',
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),
-                                                      Text(
-                                                        'Status: ${status}',
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      Expanded(child: Text(
-                                                        '${section?['meetings'][0]['days']?.join("")} ${formatMinutes(section?['meetings'][0]['startMinute']).format(context)} - ${formatMinutes(section?['meetings'][0]['endMinute']).format(context)}',
-                                                        textAlign: TextAlign.left,
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),),
-                                                      Expanded(child: Text(
-                                                        'Seats: ${section?['enrolledCount']}/${section?['capacity']}',
-                                                        textAlign: TextAlign.right,
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        '${section?['meetings'][0]['building']} ${section?['meetings'][0]['room']}',
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),
-                                                      Expanded(child: Text(
-                                                        'Waitlist: ${section?['waitlistCount']}/${section?['waitlistCapacity']}',
-                                                        textAlign: TextAlign.right,
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      Expanded(child: Text(
-                                                        'Section: ${section?['sectionNumber']}',
-                                                        textAlign: TextAlign.left,
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),),
-                                                      if (courseIdx == -1) // not in the course
-                                                      Expanded(
-                                                        child: ElevatedButton(
-                                                          style: ElevatedButton.styleFrom(
-                                                            backgroundColor: theme.colorScheme.primary,
-                                                            foregroundColor: theme.colorScheme.onPrimary,
-                                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                                          ),
-                                                          onPressed: () async {
-                                                            try {
-                                                              final response = await enrollmentService.addEnrollment(section['_id']);
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      'Prof: ${section?['instructorIds'][0]['firstName']} ${section?['instructorIds'][0]['lastName']}',
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),
+                                                    Text(
+                                                      'Status: ${status}',
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Expanded(child: Text(
+                                                      '${section?['meetings'][0]['days']?.join("")} ${formatMinutes(section?['meetings'][0]['startMinute']).format(context)} - ${formatMinutes(section?['meetings'][0]['endMinute']).format(context)}',
+                                                      textAlign: TextAlign.left,
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),),
+                                                    Expanded(child: Text(
+                                                      'Seats: ${section?['enrolledCount']}/${section?['capacity']}',
+                                                      textAlign: TextAlign.right,
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      '${section?['meetings'][0]['building']} ${section?['meetings'][0]['room']}',
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),
+                                                    Expanded(child: Text(
+                                                      'Waitlist: ${section?['waitlistCount']}/${section?['waitlistCapacity']}',
+                                                      textAlign: TextAlign.right,
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Expanded(child: Text(
+                                                      'Section: ${section?['sectionNumber']}',
+                                                      textAlign: TextAlign.left,
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),),
+                                                    if (courseIdx == -1) // not in the course
+                                                    Expanded(
+                                                      child: ElevatedButton(
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor: theme.colorScheme.primary,
+                                                          foregroundColor: theme.colorScheme.onPrimary,
+                                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                                        ),
+                                                        onPressed: () async {
+                                                          try {
+                                                            final response = await enrollmentService.addEnrollment(section['_id']);
 
-                                                              if (response.statusCode >= 200 && response.statusCode < 300) {
-                                                                final enrollmentData = jsonDecode(response.body);
-                                                                
-                                                                setState(() {
-                                                                  enrollment.add(enrollmentData);
-                                                                });
+                                                            if (response.statusCode >= 200 && response.statusCode < 300) {
+                                                              final enrollmentData = jsonDecode(response.body);
+                                                              
+                                                              setState(() {
+                                                                enrollment.add(enrollmentData);
+                                                              });
 
-                                                              } else {
-                                                                debugPrint('Request failed: ${response.statusCode} ${response.body}');
-                                                              }
-                                                            } catch (e) {
-                                                              debugPrint('Could not load user: $e');
+                                                            } else {
+                                                              debugPrint('Request failed: ${response.statusCode} ${response.body}');
                                                             }
-                                                          },
-                                                          child: Text(
-                                                            'Register',
-                                                            style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                          ),
-                                                        )
-                                                      ),
-                                                      if (courseIdx != -1 && sectionIdx != -1) // in the course, in the right section
-                                                      Text(
-                                                        '${enrollment[courseIdx]['status']} ${enrollment[sectionIdx]['waitlistPosition'] != null ? '#${enrollment[sectionIdx]['waitlistPosition']}' : ''}',
-                                                        textAlign: TextAlign.left,
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),
-                                                      if (courseIdx != -1 && sectionIdx == -1) // in the course, wrong section
-                                                      Text(
-                                                        '${enrollment[courseIdx]['status']} in ${enrollment[courseIdx]['sectionId']['sectionNumber']}',
-                                                        textAlign: TextAlign.left,
-                                                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          );
-                                        }
-                                      },
-                                    )
-                                  ]
-                                );
-                              }
+                                                          } catch (e) {
+                                                            debugPrint('Could not load user: $e');
+                                                          }
+                                                        },
+                                                        child: Text(
+                                                          '${section['capacity'] == section['enrolledCount'] ? 'Join waitlist' : 'Register'}',
+                                                          style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                        ),
+                                                      )
+                                                    ),
+                                                    if (courseIdx != -1 && sectionIdx != -1) // in the course, in the right section
+                                                    Text(
+                                                      '${enrollment[courseIdx]['status']} ${enrollment[sectionIdx]['waitlistPosition'] != null ? '#${enrollment[sectionIdx]['waitlistPosition']}' : ''}',
+                                                      textAlign: TextAlign.left,
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),
+                                                    if (courseIdx != -1 && sectionIdx == -1) // in the course, wrong section
+                                                    Text(
+                                                      '${enrollment[courseIdx]['status']} in ${enrollment[courseIdx]['sectionId']['sectionNumber']}',
+                                                      textAlign: TextAlign.left,
+                                                      style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        );
+                                      }
+                                    },
+                                  )
+                                ]
+                              );
                             }
                           ),
                         ]
