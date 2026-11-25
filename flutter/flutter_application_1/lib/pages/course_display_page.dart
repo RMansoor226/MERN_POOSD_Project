@@ -399,7 +399,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                 ),
                                 Text(
                                   // (${prereqsIds?[index]['minGrade']} or better)
-                                  '${prereqsIds[index]['minGrade'] != null ? '(${prereqsIds?[index]['minGrade']} or better)' : ''}',
+                                  prereqsIds[index]['minGrade'] != null ? '(${prereqsIds[index]['minGrade']} or better)' : '',
                                   style: TextStyle(color: theme.colorScheme.tertiary, fontSize: 16),
                                 ),
                                 if (index != prereqs.length)
@@ -410,7 +410,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                 ),
                                 if (index == prereqs.length - 1 && prereqText != '')
                                 Text(
-                                  '${prereqAdd != '' ? prereqText?.toLowerCase() : ''} ${prereqAdd}',
+                                  '${prereqAdd != '' ? prereqText?.toLowerCase() : ''} $prereqAdd',
                                   style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
                                 ),
                               ]
@@ -495,7 +495,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                               Flexible(
                                 child:TextButton(
                                   onPressed: () {
-                                    debugPrint('AMONGUS ASDFH');
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, searchTerm: '${course?['subject']}${course?['number']}')));
                                   },
                                   child: Text(
                                     'Search classes for ${course?['subject']}${course?['number']}',
@@ -596,7 +596,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                                       style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
                                                     ),
                                                     Text(
-                                                      'Status: ${status}',
+                                                      'Status: $status',
                                                       style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
                                                     ),
                                                   ],
@@ -665,7 +665,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                                           }
                                                         },
                                                         child: Text(
-                                                          '${section['capacity'] == section['enrolledCount'] ? 'Join waitlist' : 'Register'}',
+                                                          section['capacity'] == section['enrolledCount'] ? 'Join waitlist' : 'Register',
                                                           style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16),
                                                         ),
                                                       )
@@ -689,6 +689,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                           )
                                         );
                                       }
+                                      return null;
                                     },
                                   )
                                 ]

@@ -46,7 +46,10 @@ class MyApp extends StatelessWidget {
           secondary: const Color(0xFFFFFFFF),
           tertiary: const Color.fromARGB(255, 176, 176, 176),
           outline: Color.fromRGBO(243, 240, 36, 1),
-          onPrimary: const Color.fromARGB(255, 160, 0, 0) 
+          onPrimary: const Color.fromARGB(255, 160, 0, 0),
+          onSecondary: const Color.fromARGB(255, 31, 110, 62),
+          onError: const Color.fromARGB(255, 238, 68, 68),
+          onErrorContainer: const Color.fromARGB(255, 129, 45, 45),
         ),
         scaffoldBackgroundColor: const Color.fromARGB(255, 16, 16, 16),
       ),

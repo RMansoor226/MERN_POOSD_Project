@@ -1,3 +1,4 @@
+import 'package:flutter_application_1/pages/course_display_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -39,7 +40,7 @@ class _ClassSearchPage extends State<ClassSearchPage> {
   List<dynamic> sections = [];
   List<dynamic> enrolled = [];
 
-  Iterable<dynamic> filteredSections = [];
+  List<dynamic> filteredSections = [];
 
   final builtStatuses = [
     DropdownMenuItem(value: 'any', child: Text('Any status')),
@@ -57,11 +58,13 @@ class _ClassSearchPage extends State<ClassSearchPage> {
   @override
   void initState() {
     super.initState();
-    query = widget.searchTerm ?? '';
-    getTerms();
+    sectionController.text = widget.searchTerm ?? '';
+    query = sectionController.text;
+    getTerms(start: true);
+    getEnrollments();
   }
 
-  Future<void> getTerms() async {
+  Future<void> getTerms({bool start = false}) async {
     try {
       final response = await termService.getTerms();
 
@@ -78,9 +81,6 @@ class _ClassSearchPage extends State<ClassSearchPage> {
           final value = terms[i]['name'];
           final id = terms[i]['_id'];
 
-          debugPrint(value);
-          debugPrint(id);
-
           setState(() {
             builtTerms.add(DropdownMenuItem(value: id, child: Text(value)));
           }); 
@@ -90,7 +90,8 @@ class _ClassSearchPage extends State<ClassSearchPage> {
           });
           }
         }
-        debugPrint(builtTerms.toString());
+
+      getFilteredSections(terms[0]['_id']);
 
       } else {
         debugPrint('Request failed: ${response.statusCode} ${response.body}');
@@ -127,7 +128,7 @@ class _ClassSearchPage extends State<ClassSearchPage> {
         final sectionData = jsonDecode(response.body);
 
         sections = sectionData['items'];
-        debugPrint(sectionData.toString());
+        
         final q = query.trim().toLowerCase();
 
         setState(() {
@@ -141,13 +142,13 @@ class _ClassSearchPage extends State<ClassSearchPage> {
               return false;
             }
             // filter by query
-            if (!(section['title'].toString().toLowerCase().contains(q) ||
-              section['subject'].toString().toLowerCase().contains(q) ||
-              section['number'].toString().toLowerCase().contains(q))) {
+            if (!(section['courseId']['title'].toString().toLowerCase().contains(q) ||
+                  section['courseId']['code'].toString().toLowerCase().contains(q)
+              )) {
               return false;
             }
             return true;
-          });
+          }).toList();
         });
 
       } else {
@@ -156,6 +157,14 @@ class _ClassSearchPage extends State<ClassSearchPage> {
     } catch (e) {
       debugPrint('Could not load user3: $e');
     }
+  }
+
+  TimeOfDay formatMinutes(int mins) {
+    final time = TimeOfDay(
+      hour: mins ~/ 60, minute: mins % 60
+    );
+
+    return time;
   }
 
   @override
@@ -331,17 +340,12 @@ class _ClassSearchPage extends State<ClassSearchPage> {
                             padding: const EdgeInsets.only(top: 16),
                             child: ElevatedButton(
                               onPressed: () {
-                                debugPrint('${sectionController.text} and $selectedTerm and $selectedStatus and $selectedMode');
                                 query = sectionController.text;
                                 final termIdx = terms.indexWhere(
                                   (t) => t['_id'] == selectedTerm
                                 );
                                 if (termIdx >= 0) {
                                   getFilteredSections(terms[termIdx]['_id']);
-                                  debugPrint(filteredSections.toString());
-                                }
-                                else {
-                                  debugPrint(terms.toString());
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -355,7 +359,243 @@ class _ClassSearchPage extends State<ClassSearchPage> {
                     ],
                   ),
                 ),
-                
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: filteredSections.length,
+                itemBuilder: (context, index) {
+                  final filsec = filteredSections[index];
+
+                  final courseInfo = filsec['courseId'];
+                  final instructorInfo = filsec['instructorIds'][0];
+                  final locationInfo = filsec['meetings'][0];
+
+                  int isEnrolled = enrolled.indexWhere(
+                    (e) => e['sectionId']['_id'] == filsec['_id'] &&
+                    e['status'] != 'dropped'
+                  );
+
+                  int elseEnrolled = enrolled.indexWhere(
+                    (e) => e['courseId']['_id'] == filsec['courseId']['_id'] &&
+                    (e['status'] == 'waitlisted' || e['status'] == 'enrolled')
+                  );
+
+                  return Padding(
+                    padding: EdgeInsets.only(left: 24, right:24, bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border(
+                          left: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 4
+                          ),
+                        )
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded( child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  alignment: Alignment.centerLeft,
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: courseInfo['_id'])));
+                                },
+                                child: Text(
+                                  '${courseInfo['code']}'
+                                  ' - ${instructorInfo['firstName']} ${instructorInfo['lastName']}',
+                                  style: TextStyle(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1), decorationThickness: 2
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Section ${filsec['sectionNumber']} - ${courseInfo['title']}',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                textAlign: TextAlign.left,
+                              ),
+                              Text(
+                                '${locationInfo['days'].join()} ${formatMinutes(locationInfo['startMinute']).format(context)}'
+                                ' - ${formatMinutes(locationInfo['endMinute']).format(context)}',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                textAlign: TextAlign.left,
+                              ),
+                              Text(
+                                'Room: ${locationInfo['building']} ${locationInfo['room']}',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                textAlign: TextAlign.left,
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // if waitlisted
+                                  if (filsec['capacity'] == filsec['enrolledCount'])
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Waitlist: ${filsec['waitlistCount']}/${filsec['waitlistCapacity']}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.outline,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  )
+                                  // if open
+                                  else if (filsec['status'] == 'open')
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.onSecondary,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Open: ${filsec['enrolledCount']}/${filsec['capacity']}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.tertiaryContainer,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  )
+                                  else
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.onErrorContainer,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Closed',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.onError,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  ),
+                                  // if enrolled and in that class
+                                  if (isEnrolled != -1 && enrolled[isEnrolled]['sectionId']['_id'] == filsec['_id'])
+                                  Text(
+                                      enrolled[isEnrolled]['status'] != 'waitlisted' ? 'registered' : 'waitlisted',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.tertiary,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                  )
+                                  else if (elseEnrolled != -1)
+                                  Text(
+                                      '${enrolled[elseEnrolled]['status'] == 'waitlisted' ? 'waitlisted in' : 
+                                      'registered in'} ${enrolled[elseEnrolled]['sectionId']['sectionNumber']}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.tertiary,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                  )
+                                  // if waitlisted
+                                  else if (filsec['capacity'] == filsec['enrolledCount'])
+                                  OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      foregroundColor: theme.colorScheme.secondaryContainer,
+                                      side: BorderSide(color: const Color.fromARGB(255, 110, 110, 110)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      try {
+                                        final response = await enrollmentService.addEnrollment(filsec['_id']);
+
+                                        if (response.statusCode >= 200 && response.statusCode < 300) {
+                                          final enrollmentData = jsonDecode(response.body);
+                                          
+                                          setState(() {
+                                            enrolled.add(enrollmentData);
+                                            filsec['waitlistCount'] = (filsec['waitlistCount'] as int) + 1;
+                                          });
+
+                                        } else {
+                                          debugPrint('Request failed: ${response.statusCode} ${response.body}');
+                                        }
+                                      } catch (e) {
+                                        debugPrint('Could not load user: $e');
+                                      }
+                                    },
+                                    child: Text(
+                                      'Join Waitlist',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.secondary,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  )
+                                  // if open
+                                  else if (filsec['status'] == 'open')
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      backgroundColor: theme.colorScheme.primary,
+                                    ),
+                                    onPressed: () async {
+                                      try {
+                                        final response = await enrollmentService.addEnrollment(filsec['_id']);
+
+                                        if (response.statusCode >= 200 && response.statusCode < 300) {
+                                          final enrollmentData = jsonDecode(response.body);
+                                          
+                                          setState(() {
+                                            enrolled.add(enrollmentData);
+                                            filsec['enrolledCount'] = (filsec['enrolledCount'] as int) + 1;
+                                          });
+
+                                        } else {
+                                          debugPrint('Request failed: ${response.statusCode} ${response.body}');
+                                        }
+                                      } catch (e) {
+                                        debugPrint('Could not load user: $e');
+                                      }
+                                    },
+                                    child: Text(
+                                      'Register',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.secondary,
+                                      ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ],
+                          )),
+                        ],
+                      ), 
+                    )
+                  );
+                },
               ),
             ]
           )

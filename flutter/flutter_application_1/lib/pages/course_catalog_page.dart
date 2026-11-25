@@ -1,8 +1,5 @@
-import 'package:flutter_application_1/pages/course_display_page.dart';
-import 'package:flutter_application_1/services/course_service.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
-import 'package:intl/intl.dart';
 
 import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/pages/class_search_page.dart';
@@ -11,6 +8,7 @@ import 'package:flutter_application_1/pages/course_display_page.dart';
 
 import '../services/auth_service.dart';
 import '../services/department_service.dart';
+import '../services/course_service.dart';
 
 class CourseCatalogPage extends StatefulWidget {
   const CourseCatalogPage({super.key, required this.userId});
@@ -98,24 +96,17 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
             }
           }
         }
+        final q = query.toLowerCase();
         setState(() {
-          filteredCourses = [];
+          filteredCourses = tmp.where((fil) {
+            final code = fil['subject'].toString().toLowerCase() + fil['number'].toString().toLowerCase();
+            if (!(fil['title'].toString().toLowerCase().contains(q) || 
+                 code.contains(q))) {
+              return false;
+            }
+            return true;
+          }).toList();
         });
-        for (int i = 0; i < tmp.length; i++) {
-          if (tmp[i]['title'].toString().toLowerCase().contains(query) ||
-            tmp[i]['subject'].toString().toLowerCase().contains(query) ||
-            tmp[i]['number'].toString().toLowerCase().contains(query)) {
-            setState(() {
-              debugPrint(tmp[i]['title'].contains(query).toString());
-              debugPrint('subject ${tmp[i]['subject'].contains(query).toString()}');
-              debugPrint('number ${tmp[i]['number'].contains(query).toString()}');
-              setState(() {
-                filteredCourses.add(tmp[i]);
-              });
-            });
-          }
-        }
-        debugPrint(filteredCourses.toString());
 
       } else {
         debugPrint('Request failed: ${response.statusCode} ${response.body}');
@@ -268,14 +259,13 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
                             padding: const EdgeInsets.only(top: 16),
                             child: ElevatedButton(
                               onPressed: () {
-                                debugPrint('${catalogController.text} and $selectedDepartment');
-                                query = catalogController.text.toLowerCase();
+                                query = catalogController.text;
                                 getCourses();
                               },
-                              child: Text('Search', style: TextStyle(color: theme.colorScheme.secondary),),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.colorScheme.primary
-                              )
+                              ),
+                              child: Text('Search', style: TextStyle(color: theme.colorScheme.secondary),)
                             ),
                           ),
                         ],
@@ -289,7 +279,6 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
                 physics: NeverScrollableScrollPhysics(),
                 itemCount: filteredCourses.length,
                 itemBuilder: (context, index) {
-                  final course = filteredCourses[index];
 
                   return Padding(
                     padding: EdgeInsets.only(left: 24, right:24, bottom: 12),
