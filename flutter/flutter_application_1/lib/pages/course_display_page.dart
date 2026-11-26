@@ -520,6 +520,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                               for (int i = 0; i < sections.length; i++) {
                                 if (sections[i]['termId']['_id'] == term['_id']) {
                                   hasSection = true;
+                                  debugPrint(sections[i]['termId']['name']);
                                 }
                               }
 
@@ -534,10 +535,11 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                   return true;
                                 }).toList(); 
                               }
-
+                              
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  if (hasSection)
                                   Text(
                                     '${term?['name'] ?? ''}',
                                     style: TextStyle(color: theme.colorScheme.secondary, fontSize: 18, fontWeight: FontWeight.bold),
