@@ -8,6 +8,7 @@ import 'package:flutter_application_1/pages/class_search_page.dart';
 import 'package:flutter_application_1/pages/program_display_page.dart';
 
 import '../services/auth_service.dart';
+import '../services/program_service.dart';
 
 class ProgramsPage extends StatefulWidget {
   const ProgramsPage({super.key, required this.userId});
@@ -20,6 +21,45 @@ class ProgramsPage extends StatefulWidget {
 
 class _ProgramsPage extends State<ProgramsPage> {
   final authService = AuthService();
+  final programService = ProgramService();
+
+  List<dynamic> majors = [];
+  List<dynamic> minors = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getPrograms();
+  }
+
+  Future<void> getPrograms() async {
+    try {
+      final response = await programService.getAllPrograms();
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final programData = jsonDecode(response.body);
+        
+        final program = programData['items'];
+        for (int i = 0; i < program.length; i++) {
+          if (program[i]['type'] == 'major') {
+            setState(() {
+              majors.add(program[i]);
+            });
+          }
+          else {
+            setState(() {
+              minors.add(program[i]);
+            });
+          }
+        }
+
+      } else {
+        debugPrint('Request failed: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Could not load user: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +154,246 @@ class _ProgramsPage extends State<ProgramsPage> {
           alignment: Alignment.topCenter,
           child: Column(
             children: [
-              
+              Container(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  width: 360,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 4
+                      )
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Majors',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                      ),  
+                      const SizedBox(height: 8,),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        itemCount: majors.length,
+                        itemBuilder: (context, index) {
+                          final program = majors[index];
+                          
+                          return Padding(
+                            padding: EdgeInsets.zero,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border(
+                                  left: BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 4
+                                  ),
+                                )
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded( child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          alignment: Alignment.centerLeft,
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramDisplayPage(userId: widget.userId, programId: program['_id'], title: program['name'])));
+                                        },
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${program['name']}',
+                                              style: TextStyle(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold,
+                                                decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1), decorationThickness: 2
+                                              ),
+                                            ),
+                                            if (program['degree'] != null)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: theme.colorScheme.primary,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '${program['degree']}',
+                                                style: TextStyle(
+                                                  color: theme.colorScheme.secondary,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        'Catalog: ${program['catalogYear']}',
+                                        style: TextStyle(color: theme.colorScheme.tertiary, fontSize: 12,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${program['totalCredits']} Credits - ${program['requirements'].length}',
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                        textAlign: TextAlign.left,
+                                      ),
+                                    ],
+                                  )),
+                                ],
+                              ), 
+                            )
+                          );
+                        }
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  width: 360,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    border: Border(
+                      top: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 4
+                      )
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Minors',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.secondary),
+                      ),  
+                      const SizedBox(height: 8,),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        itemCount: minors.length,
+                        itemBuilder: (context, index) {
+                          final program = minors[index];
+                          
+                          return Padding(
+                            padding: EdgeInsets.zero,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.secondaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border(
+                                  left: BorderSide(
+                                    color: theme.colorScheme.primary,
+                                    width: 4
+                                  ),
+                                )
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded( child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          alignment: Alignment.centerLeft,
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramDisplayPage(userId: widget.userId, programId: program['_id'], title: program['name'])));
+                                        },
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${program['name']}',
+                                              style: TextStyle(color: theme.colorScheme.secondary, fontSize: 20, fontWeight: FontWeight.bold,
+                                                decoration: TextDecoration.underline, decorationColor: Color.fromRGBO(243, 240, 36, 1), decorationThickness: 2
+                                              ),
+                                            ),
+                                            if (program['degree'] != null)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: theme.colorScheme.primary,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '${program['degree']}',
+                                                style: TextStyle(
+                                                  color: theme.colorScheme.secondary,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        'Catalog: ${program['catalogYear']}',
+                                        style: TextStyle(color: theme.colorScheme.tertiary, fontSize: 12,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${program['totalCredits']} Credits - ${program['requirements'].length}',
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.tertiary),
+                                        textAlign: TextAlign.left,
+                                      ),
+                                    ],
+                                  )),
+                                ],
+                              ), 
+                            )
+                          );
+                        }
+                      )
+                    ],
+                  ),
+                ),
+              ),
             ]
           )
         )

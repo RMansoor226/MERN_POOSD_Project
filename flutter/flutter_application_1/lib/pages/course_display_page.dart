@@ -545,6 +545,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                                   ListView.builder(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
+                                    padding: EdgeInsets.zero,
                                     itemCount: tmpSection.length,
                                     itemBuilder:(context, index) {
                                       final section = tmpSection[index];

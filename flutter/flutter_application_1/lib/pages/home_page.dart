@@ -55,7 +55,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     loadTerms();
-    getLatestTerm();
     loadAllEnrollments();
     loadUser(widget.userId);
   }
@@ -478,10 +477,12 @@ class _HomePageState extends State<HomePage> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
                         itemCount: declaredPrograms.length,
                         itemBuilder: (context, index) {
                           final declaration = declaredPrograms[index];
                           final programId = declaration['programId'] as String;
+
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: 
@@ -614,7 +615,7 @@ class _HomePageState extends State<HomePage> {
                                   const SnackBar(content: Text('There are no other programs to declare')),
                                 );
                             } else {
-                              final selectedProgram = await showDialog<Map<String, dynamic>>(
+                              await showDialog<Map<String, dynamic>>(
                                 context: context,
                                 builder: (dialogContext) {
                                   return StatefulBuilder(
@@ -859,6 +860,7 @@ class _HomePageState extends State<HomePage> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
                         itemCount: waitlists.length,
                         itemBuilder: (context, index) {
                           final enrolls = waitlists[index];
@@ -1008,6 +1010,7 @@ class _HomePageState extends State<HomePage> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
                         itemCount: enrolled.length,
                         itemBuilder: (context, index) {
                           final enrolls = enrolled[index];
@@ -1158,14 +1161,20 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(color: theme.colorScheme.secondary, fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8,),
+                      if (declaredPrograms.length == 0)
+                      Text(
+                        'Not in any programs',
+                        style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         itemCount: declaredPrograms.length,
+                        padding: EdgeInsets.zero,
                         itemBuilder: (context, index) {
                           final programId = declaredPrograms[index]['programId'];
                           int totalCreditHours = 0;
-
+                          debugPrint(declaredPrograms.length.toString());
                           // calc tch
                           for (int i = 0; i < completed.length; i++) {
                             totalCreditHours += (completed[i]['courseId']['credits'] as num).toInt();
@@ -1248,6 +1257,7 @@ class _HomePageState extends State<HomePage> {
                                       ListView.builder(
                                         shrinkWrap: true,
                                         physics: NeverScrollableScrollPhysics(),
+                                        padding: EdgeInsets.zero,
                                         itemCount: requirements.length,
                                         itemBuilder: (context, index) {
                                           // get courses completed and courses registered
