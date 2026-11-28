@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:flutter_application_1/pages/admin_page.dart';
+import 'package:flutter_application_1/pages/admin_page_display.dart';
 import 'package:flutter_application_1/pages/course_display_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -55,39 +57,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       routes: {
-        '/home': (context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
-            return HomePage(userId: userId);},
         '/login': (context) => const LoginPage(title: 'Login Page'),
-        '/catalog':(context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
-            return CourseCatalogPage(userId: userId);},
-        'classes':(context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
-            return ClassSearchPage(userId: userId);},
-        '/programs':(context) {final userId = ModalRoute.of(context)!.settings.arguments as String;
-            return ProgramsPage(userId: userId);},
-      },
-      onGenerateRoute: (id) {
-        final uri = Uri.parse(id.name ?? '');
-
-        if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'programs') {
-          final programId = uri.pathSegments[1];
-
-          return MaterialPageRoute(
-            builder: (context) => ProgramDisplayPage(userId: ModalRoute.of(context)!.settings.arguments as String, programId: programId)
-          );
-        } else if (uri.pathSegments.length == 2 && uri.pathSegments[0] == 'catalog') {
-          final courseId = uri.pathSegments[1];
-
-          return MaterialPageRoute(
-            builder: (context) => CourseDisplayPage(userId: ModalRoute.of(context)!.settings.arguments as String, courseId: courseId)
-          );
-        }
-
-        return MaterialPageRoute(
-          builder: (context) => const Scaffold(
-            body: Center(child: Text('Page not found'))
-          ),
-        );
-      },
+      }
     );
   }
 }

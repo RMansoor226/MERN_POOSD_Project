@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 
 import 'package:flutter_application_1/pages/home_page.dart';
+import 'package:flutter_application_1/pages/admin_page.dart';
 import 'package:flutter_application_1/pages/course_catalog_page.dart';
 import 'package:flutter_application_1/pages/class_search_page.dart';
 import 'package:flutter_application_1/pages/programs_page.dart';
@@ -12,10 +13,11 @@ import '../services/program_service.dart';
 import '../services/course_service.dart';
 
 class ProgramDisplayPage extends StatefulWidget {
-  const ProgramDisplayPage({super.key, required this.userId, required this.programId, this.title});
+  const ProgramDisplayPage({super.key, required this.userId, required this.programId, required this.role, this.title});
 
   final String userId;
   final String programId;
+  final String role;
   final String? title;
 
   @override
@@ -147,11 +149,20 @@ class _ProgramDisplayPage extends State<ProgramDisplayPage> {
               padding: const EdgeInsets.all(16),
               child: Text('Navigation', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
             ),
+            if (widget.role == 'admin')
+            ListTile(
+              title: Text('Admin', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AdminPage(userId: widget.userId, role: 'admin')));
+              }
+            )
+            else
             ListTile(
               title: Text('Home', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId, role: widget.role)));
               }
             ),
             
@@ -159,14 +170,14 @@ class _ProgramDisplayPage extends State<ProgramDisplayPage> {
               title: Text('Course Catalog', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
               title: Text('Class Search', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -180,7 +191,7 @@ class _ProgramDisplayPage extends State<ProgramDisplayPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -419,7 +430,7 @@ class _ProgramDisplayPage extends State<ProgramDisplayPage> {
                                                 visualDensity: VisualDensity.compact,
                                               ),
                                               onPressed:() {
-                                                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: courseInfo['_id'])));
+                                                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: courseInfo['_id'], role: widget.role)));
                                               },
                                               child: Text(
                                                 '${courseInfo['title']}',
@@ -486,7 +497,7 @@ class _ProgramDisplayPage extends State<ProgramDisplayPage> {
                                                         visualDensity: VisualDensity.compact,
                                                       ),
                                                       onPressed:() {
-                                                        Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: course['_id'])));
+                                                        Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: course['_id'], role: widget.role)));
                                                       },
                                                       child: Text(
                                                         '${course['title']}',

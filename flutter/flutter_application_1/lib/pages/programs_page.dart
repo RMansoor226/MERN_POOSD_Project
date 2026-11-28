@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import 'package:flutter_application_1/pages/home_page.dart';
+import 'package:flutter_application_1/pages/admin_page.dart';
 import 'package:flutter_application_1/pages/course_catalog_page.dart';
 import 'package:flutter_application_1/pages/class_search_page.dart';
 import 'package:flutter_application_1/pages/program_display_page.dart';
@@ -11,9 +12,10 @@ import '../services/auth_service.dart';
 import '../services/program_service.dart';
 
 class ProgramsPage extends StatefulWidget {
-  const ProgramsPage({super.key, required this.userId});
+  const ProgramsPage({super.key, required this.userId, required this.role});
 
   final String userId;
+  final String role;
 
   @override
   State<ProgramsPage> createState() => _ProgramsPage();
@@ -99,11 +101,20 @@ class _ProgramsPage extends State<ProgramsPage> {
               padding: const EdgeInsets.all(16),
               child: Text('Navigation', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
             ),
+            if (widget.role == 'admin')
+            ListTile(
+              title: Text('Admin', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AdminPage(userId: widget.userId, role: 'admin')));
+              }
+            )
+            else
             ListTile(
               title: Text('Home', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId, role: widget.role)));
               }
             ),
             
@@ -111,14 +122,14 @@ class _ProgramsPage extends State<ProgramsPage> {
               title: Text('Course Catalog', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
               title: Text('Class Search', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -222,7 +233,7 @@ class _ProgramsPage extends State<ProgramsPage> {
                                           visualDensity: VisualDensity.compact,
                                         ),
                                         onPressed: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramDisplayPage(userId: widget.userId, programId: program['_id'], title: program['name'])));
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramDisplayPage(userId: widget.userId, programId: program['_id'], title: program['name'], role: widget.role,)));
                                         },
                                         child: Row(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +353,7 @@ class _ProgramsPage extends State<ProgramsPage> {
                                           visualDensity: VisualDensity.compact,
                                         ),
                                         onPressed: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramDisplayPage(userId: widget.userId, programId: program['_id'], title: program['name'])));
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramDisplayPage(userId: widget.userId, programId: program['_id'], title: program['name'], role: widget.role)));
                                         },
                                         child: Row(
                                           crossAxisAlignment: CrossAxisAlignment.start,

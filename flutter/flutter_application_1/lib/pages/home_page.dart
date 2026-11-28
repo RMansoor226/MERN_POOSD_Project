@@ -14,9 +14,10 @@ import '../services/enrollment_service.dart';
 
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.userId});
+  const HomePage({super.key, required this.userId, required this.role});
 
   final String userId;
+  final String role;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -271,21 +272,21 @@ class _HomePageState extends State<HomePage> {
               title: Text('Course Catalog', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
               title: Text('Class Search', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
               title: Text('Programs', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -411,6 +412,12 @@ class _HomePageState extends State<HomePage> {
                                     email = emailController.text.isEmpty ? '' : emailController.text;
                                   });
                                 }
+                                else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('${response.body}')),
+                                );
+                                debugPrint(response.body.toString());
+                                }
                               } catch(e) {
                                 if (!context.mounted) return;
 
@@ -422,7 +429,7 @@ class _HomePageState extends State<HomePage> {
                             } else {
                               firstNameController.text = firstName as String;
                               lastNameController.text = lastName as String;
-                              emailController.text = email as String;
+                              emailController.text = email == 'Not provided' ? email as String : '';
                               setState(() {
                                     isEditing = true;
                               });
@@ -610,7 +617,7 @@ class _HomePageState extends State<HomePage> {
                             
                             if (!mounted) return;
 
-                            if (otherPrograms.length == 0) {
+                            if (otherPrograms.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('There are no other programs to declare')),
                                 );
@@ -716,7 +723,7 @@ class _HomePageState extends State<HomePage> {
                             alignment: Alignment.centerLeft,
                             child: TextButton(
                             onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(builder:(context) => ProgramsPage(userId: widget.userId)));
+                              Navigator.push(context, MaterialPageRoute(builder:(context) => ProgramsPage(userId: widget.userId, role: widget.role)));
                             },
                             child: Text(
                               'Browse all programs',
@@ -795,7 +802,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                                TextButton(
                                 onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, role: widget.role)));
                                 },
                                 style: TextButton.styleFrom(
                                   alignment: Alignment.centerLeft,
@@ -995,7 +1002,7 @@ class _HomePageState extends State<HomePage> {
                       if (enrolled.isEmpty)
                       TextButton(
                         onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, role: widget.role)));
                         },
                         child: Text('You are not enrolled for any classes. Find classes',
                         style: TextStyle(color: theme.colorScheme.secondary, fontSize: 16, fontWeight: FontWeight.bold,

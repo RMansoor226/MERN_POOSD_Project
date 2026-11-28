@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import 'package:flutter_application_1/pages/home_page.dart';
+import 'package:flutter_application_1/pages/admin_page.dart';
 import 'package:flutter_application_1/pages/course_catalog_page.dart';
 import 'package:flutter_application_1/pages/class_search_page.dart';
 import 'package:flutter_application_1/pages/programs_page.dart';
@@ -15,9 +16,10 @@ import '../services/term_service.dart';
 import '../services/section_service.dart';
 
 class CourseDisplayPage extends StatefulWidget {
-  const CourseDisplayPage({super.key, required this.userId, required this.courseId});
+  const CourseDisplayPage({super.key, required this.userId, required this.courseId, required this.role});
 
   final String userId;
+  final String role;
   final String courseId;
 
   @override
@@ -244,11 +246,20 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
               padding: const EdgeInsets.all(16),
               child: Text('Navigation', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
             ),
+            if (widget.role == 'admin')
+            ListTile(
+              title: Text('Admin', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AdminPage(userId: widget.userId, role: 'admin')));
+              }
+            )
+            else
             ListTile(
               title: Text('Home', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -262,21 +273,21 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
               title: Text('Class Search', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
               title: Text('Programs', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -300,7 +311,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
           children: [
             TextButton(
               onPressed:() {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseCatalogPage(userId: widget.userId, role: widget.role)));
               },
               child: Text(
                 'Back to Course Catalog',
@@ -383,7 +394,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                               for (int index = 0; index < prereqs.length; index++) ...[
                                 TextButton(
                                   onPressed:() {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: prereqs[index]['_id'])));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: prereqs[index]['_id'], role: widget.role)));
                                   },
                                   style: TextButton.styleFrom(
                                     padding: EdgeInsets.zero,
@@ -434,7 +445,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
 
                               return TextButton(
                                 onPressed:() {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: coreq['_id'])));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: coreq['_id'], role: widget.role)));
                                 },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
@@ -495,7 +506,7 @@ class _CourseDisplayPage extends State<CourseDisplayPage> {
                               Flexible(
                                 child:TextButton(
                                   onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, searchTerm: '${course?['subject']}${course?['number']}')));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, searchTerm: '${course?['subject']}${course?['number']}', role: widget.role)));
                                   },
                                   child: Text(
                                     'Search classes for ${course?['subject']}${course?['number']}',

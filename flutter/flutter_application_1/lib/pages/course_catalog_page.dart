@@ -1,3 +1,4 @@
+import 'package:flutter_application_1/pages/admin_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 
@@ -11,9 +12,10 @@ import '../services/department_service.dart';
 import '../services/course_service.dart';
 
 class CourseCatalogPage extends StatefulWidget {
-  const CourseCatalogPage({super.key, required this.userId});
+  const CourseCatalogPage({super.key, required this.userId, required this.role});
 
   final String userId;
+  final String role;
 
   @override
   State<CourseCatalogPage> createState() => _CourseCatalogPage();
@@ -154,11 +156,20 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
               padding: const EdgeInsets.all(16),
               child: Text('Navigation', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
             ),
+            if (widget.role == 'admin')
+            ListTile(
+              title: Text('Admin', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AdminPage(userId: widget.userId, role: 'admin')));
+              }
+            )
+            else
             ListTile(
               title: Text('Home', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -178,14 +189,14 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
               title: Text('Class Search', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ClassSearchPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
               title: Text('Programs', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProgramsPage(userId: widget.userId, role: widget.role)));
               }
             ),
             ListTile(
@@ -306,7 +317,7 @@ class _CourseCatalogPage extends State<CourseCatalogPage> {
                                 padding: EdgeInsets.zero,
                               ),
                               onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: filteredCourses[index]['_id'])));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => CourseDisplayPage(userId: widget.userId, courseId: filteredCourses[index]['_id'], role: widget.role)));
                               },
                               child: Text(
                                 '${filteredCourses[index]['subject']}${filteredCourses[index]['number']}'

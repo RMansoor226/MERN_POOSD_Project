@@ -1,3 +1,4 @@
+import 'package:flutter_application_1/pages/admin_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 
@@ -122,8 +123,17 @@ class _LoginPageState extends State<LoginPage> {
                         );
                         if (response.statusCode == 200) {
                           final id = await authService.getId();
-                          Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => HomePage(userId: id.toString())));
+                          final role = data['role'];
+                          
+                          if (role == 'student') {
+                            Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => HomePage(userId: id.toString(), role: role)));
+                          } else if (role == 'admin') {
+                            Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => AdminPage(userId: id.toString(), role: role)));
+                          } else if (role == 'instructor') {
+                            debugPrint('log in for instructor');
+                          }
                         }
                       } catch(e) {
                         if (!context.mounted) return;
